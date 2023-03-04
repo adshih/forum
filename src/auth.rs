@@ -14,21 +14,19 @@ const DEFAULT_SESSION_LENGTH: time::Duration = time::Duration::weeks(2);
 const SCHEME_PREFIX: &str = "Bearer ";
 
 pub struct AuthUser {
-    pub user_id: Uuid,
+    pub id: Uuid,
 }
-
-pub struct MaybeAuthUser(pub Option<AuthUser>);
 
 #[derive(Serialize, Deserialize)]
 struct AuthUserClaims {
-    user_id: Uuid,
+    id: Uuid,
     exp: i64,
 }
 
 impl AuthUser {
     pub(crate) fn to_jwt(&self, state: &AppState) -> String {
         let claims = AuthUserClaims {
-            user_id: self.user_id,
+            id: self.id,
             exp: (OffsetDateTime::now_utc() + DEFAULT_SESSION_LENGTH).unix_timestamp(),
         };
 
@@ -77,9 +75,7 @@ impl AuthUser {
             return Err(StatusCode::UNAUTHORIZED);
         }
 
-        Ok(Self {
-            user_id: claims.user_id,
-        })
+        Ok(Self { id: claims.id })
     }
 }
 

@@ -60,7 +60,7 @@ async fn login_user(
 
     Ok(Json(User {
         email: user.email,
-        token: AuthUser { user_id: user.id }.to_jwt(&state),
+        token: AuthUser { id: user.id }.to_jwt(&state),
         username: user.username,
         created_at: DateTime::<Local>::from(user.created_at.unwrap()).to_string(),
     }))
@@ -87,13 +87,13 @@ async fn create_user(
     Ok(Json(User {
         username: req.username,
         email: req.email,
-        token: AuthUser { user_id: result.id }.to_jwt(&state),
+        token: AuthUser { id: result.id }.to_jwt(&state),
         created_at: local_created_at.to_string(),
     }))
 }
 
 async fn get_user(auth_user: AuthUser) -> String {
-    auth_user.user_id.to_string()
+    auth_user.id.to_string()
 }
 
 async fn hash_password(password: String) -> Result<String, StatusCode> {
