@@ -1,5 +1,4 @@
-use axum::{routing::get, Router};
-use forum::routes::{self, AppState};
+use forum::routes;
 use sqlx::postgres::PgPoolOptions;
 
 #[tokio::main]
@@ -16,14 +15,7 @@ async fn main() {
         .await
         .expect("cound not connect to database");
 
-    let app_state = AppState { db };
-
-    let app = Router::new()
-        .route("/", get(|| async { "Hello, World!" }))
-        .merge(routes::users::router())
-        .merge(routes::profiles::router())
-        .with_state(app_state);
-
+    let app = routes::router(db);
     axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
         .serve(app.into_make_service())
         .await

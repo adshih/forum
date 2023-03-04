@@ -9,15 +9,17 @@ use axum_macros::debug_handler;
 use chrono::{DateTime, Local};
 use serde::Serialize;
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct Profile {
     username: String,
+    score: i32,
     created_at: String,
     // is_following: bool,
 }
 
-pub fn router() -> Router<AppState> {
+pub(crate) fn router() -> Router<AppState> {
     Router::new().route("/api/profiles/:username", get(get_profile))
+    // post delete /api/profiles/:username/follow
 }
 
 #[debug_handler]
@@ -26,7 +28,7 @@ async fn get_profile(
     Path(username): Path<String>,
 ) -> Result<Json<Profile>, StatusCode> {
     let result = sqlx::query!(
-        r#"select username, created_at from users where username = $1"#,
+        r#"select username, score, created_at from users where username = $1"#,
         username
     )
     .fetch_optional(&state.db)
@@ -38,6 +40,7 @@ async fn get_profile(
 
     Ok(Json(Profile {
         username: result.username,
+        score: result.score.unwrap(),
         created_at: local_created_at.to_string(),
     }))
 }
