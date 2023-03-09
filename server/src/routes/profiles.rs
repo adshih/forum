@@ -7,15 +7,11 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
-use chrono::{DateTime, Local};
 use serde::Serialize;
 
 #[derive(Serialize, Clone)]
 pub struct Profile {
     username: String,
-    // score: i32,
-    // created_at: String,
-    // is_following: bool,
 }
 
 pub(crate) fn router() -> Router<AppState> {
@@ -100,11 +96,7 @@ async fn get_profile(
     .await?
     .ok_or(Error::NotFound)?;
 
-    let _local_created_at: DateTime<Local> = DateTime::from(result.created_at.unwrap());
-
     Ok(Json(Profile {
         username: result.username,
-        // score: result.score.unwrap(),
-        // created_at: local_created_at.to_string(),
     }))
 }

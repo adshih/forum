@@ -23,7 +23,7 @@ pub struct User {
     username: String,
     email: String,
     token: String,
-    created_at: String,
+    created_at: DateTime<Local>,
 }
 
 pub(crate) fn router() -> Router<AppState> {
@@ -36,18 +36,21 @@ async fn login_user(
     State(state): State<AppState>,
     Json(req): Json<LoginUser>,
 ) -> Result<Json<User>> {
-    let user = sqlx::query!("select * from users where username = $1", req.username)
-        .fetch_optional(&state.db)
-        .await?
-        .ok_or_else(|| Error::unprocessable_entity([("username", "does not exist")]))?;
+    let user = sqlx::query!(
+        "select id, username, email, password_hash, created_at from users where username = $1",
+        req.username
+    )
+    .fetch_optional(&state.db)
+    .await?
+    .ok_or_else(|| Error::unprocessable_entity([("username", "does not exist")]))?;
 
-    verify_password(req.password, user.password.clone()).await?;
+    verify_password(req.password, user.password_hash.clone()).await?;
 
     Ok(Json(User {
         email: user.email,
         token: AuthUser { id: user.id }.to_jwt(&state),
         username: user.username,
-        created_at: DateTime::<Local>::from(user.created_at.unwrap()).to_string(),
+        created_at: user.created_at.into(),
     }))
 }
 
@@ -58,7 +61,7 @@ async fn create_user(
     let password_hash = hash_password(req.password).await?;
 
     let result = sqlx::query!(
-        "insert into users (username, email, password) values ($1, $2, $3) returning id, created_at",
+        "insert into users (username, email, password_hash) values ($1, $2, $3) returning id, created_at",
         req.username,
         req.email,
         password_hash,
@@ -72,13 +75,11 @@ async fn create_user(
         Error::unprocessable_entity([("email", "email taken")])
     })?;
 
-    let local_created_at: DateTime<Local> = DateTime::from(result.created_at.unwrap());
-
     Ok(Json(User {
         username: req.username,
         email: req.email,
         token: AuthUser { id: result.id }.to_jwt(&state),
-        created_at: local_created_at.to_string(),
+        created_at: result.created_at.into(),
     }))
 }
 

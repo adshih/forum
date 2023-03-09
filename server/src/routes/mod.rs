@@ -2,6 +2,7 @@ use axum::{routing::get, Router};
 use sqlx::PgPool;
 
 mod profiles;
+mod threads;
 pub mod users;
 
 #[derive(Clone)]
@@ -23,5 +24,6 @@ pub fn router(db: PgPool) -> Router {
         .route("/", get(|| async { "Aw Rats.." }))
         .merge(users::router())
         .merge(profiles::router())
+        .merge(threads::router())
         .with_state(app_state)
 }

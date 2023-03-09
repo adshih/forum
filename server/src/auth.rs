@@ -6,7 +6,6 @@ use axum::{
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
-use uuid::Uuid;
 
 use crate::routes::AppState;
 
@@ -14,12 +13,12 @@ const DEFAULT_SESSION_LENGTH: time::Duration = time::Duration::weeks(2);
 const SCHEME_PREFIX: &str = "Bearer ";
 
 pub struct AuthUser {
-    pub id: Uuid,
+    pub id: i64,
 }
 
 #[derive(Serialize, Deserialize)]
 struct AuthUserClaims {
-    id: Uuid,
+    id: i64,
     exp: i64,
 }
 

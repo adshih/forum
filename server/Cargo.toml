@@ -9,7 +9,7 @@ edition = "2021"
 
 # Core
 axum = "0.6.9"
-tokio = { version = "1.25.0", features = ["full"] }
+tokio = { version = "1.26.0", features = ["full"] }
 tower-http = { version = "0.4.0", features = ["cors"] }
 sqlx = { version = "0.6.2", features = ["runtime-tokio-native-tls", "postgres", "chrono", "uuid"] }
 
@@ -28,8 +28,9 @@ anyhow = "1.0.69"
 
 # Utility
 uuid = { version = "1.3.0", features = ["serde"] }
-chrono = "0.4.23"
+chrono = { version = "0.4.23", features = ["serde"] }
 dotenvy = "0.15.6"
 rand = { version = "0.8.5", features = ["min_const_gen"] }
 log = "0.4.17"
 time = "0.3.20"
+itertools = "0.10.5"
