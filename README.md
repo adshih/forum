@@ -1,6 +1,6 @@
 # Forum App
 
-*This application is still in development.*
+*This application is still in early development.*
 
 ## Build Instructions
 The client and server need to be run seperately.
