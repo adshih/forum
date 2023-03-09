@@ -1,7 +1,12 @@
 use super::{AppState, Error, Result, ResultExt};
 use crate::auth::AuthUser;
-use axum::{extract::State, routing::post, Json, Router};
+use axum::{
+    extract::{Path, State},
+    routing::{get, post},
+    Json, Router,
+};
 use axum_macros::debug_handler;
+use chrono::{DateTime, Local};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
@@ -16,12 +21,84 @@ struct Thread {
     title: String,
     slug: String,
     content: String,
+    created_at: DateTime<Local>,
+    is_voted: bool,
+    vote_count: i64,
+    author_id: i64,
+}
+
+#[derive(Serialize)]
+struct Listing {
+    threads: Vec<Thread>,
 }
 
 pub(crate) fn router() -> Router<AppState> {
-    Router::new().route("/api/threads", post(create_thread))
-    // .route("/api/threads/:slug", get(get_thread))
+    Router::new()
+        .route("/api/threads", post(create_thread).get(get_listing))
+        .route("/api/threads/:slug", get(get_thread))
     // .route("/api/threads/vote", post(vote_thread).delete(unvote_thread))
+}
+
+async fn get_listing(
+    auth_user: Option<AuthUser>,
+    State(state): State<AppState>,
+) -> Result<Json<Listing>> {
+    let user_id = if let Some(user) = auth_user {
+        Some(user.id)
+    } else {
+        None
+    };
+
+    let threads = sqlx::query_as!(
+        Thread,
+        r#"select
+            user_id as author_id,
+            title, 
+            slug, 
+            content, 
+            created_at as "created_at: DateTime<Local>",
+            exists(select * from votes where user_id = $1) as "is_voted!",
+            (select count(*) from votes where thread_id = threads.id) as "vote_count!"
+        from threads"#,
+        user_id
+    )
+    .fetch_all(&state.db)
+    .await?;
+
+    Ok(Json(Listing { threads }))
+}
+
+async fn get_thread(
+    auth_user: Option<AuthUser>,
+    State(state): State<AppState>,
+    Path(slug): Path<String>,
+) -> Result<Json<Thread>> {
+    let user_id = if let Some(user) = auth_user {
+        Some(user.id)
+    } else {
+        None
+    };
+
+    let thread = sqlx::query_as!(
+        Thread,
+        r#"select
+            user_id as author_id,
+            title, 
+            slug, 
+            content, 
+            created_at as "created_at: DateTime<Local>",
+            exists(select * from votes where user_id = $1) as "is_voted!",
+            (select count(*) from votes where thread_id = threads.id) as "vote_count!"
+        from threads 
+        where slug = $2"#,
+        user_id,
+        slug
+    )
+    .fetch_optional(&state.db)
+    .await?
+    .ok_or(Error::NotFound)?;
+
+    Ok(Json(thread))
 }
 
 #[debug_handler]
@@ -32,24 +109,31 @@ async fn create_thread(
 ) -> Result<Json<Thread>> {
     let slug = slugify(&req.title);
 
-    let _result = sqlx::query!(
-        "insert into threads(user_id, title, slug, content) values($1, $2, $3, $4)",
+    let thread = sqlx::query_as!(
+        Thread,
+        r#"insert into threads(user_id, title, slug, content) 
+        values($1, $2, $3, $4) 
+        returning 
+            user_id as author_id, 
+            slug, 
+            title, 
+            content, 
+            created_at as "created_at: DateTime<Local>",
+            0 as "vote_count!: i64",
+            false as "is_voted!"
+            "#,
         auth_user.id,
         req.title,
         slug,
         req.content
     )
-    .execute(&state.db)
+    .fetch_one(&state.db)
     .await
     .on_constraint("article_slug_key", |_| {
         Error::unprocessable_entity([("slug", format!("duplicate article slug: {}", slug))])
     })?;
 
-    Ok(Json(Thread {
-        title: req.title,
-        slug: slug,
-        content: req.content,
-    }))
+    Ok(Json(thread))
 }
 
 fn slugify(title: &str) -> String {

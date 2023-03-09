@@ -17,7 +17,7 @@ create table if not exists follows (
 create table if not exists threads (
     id          bigserial primary key,
     user_id     bigint not null references users(id),
-    slug        text not null,
+    slug        text unique not null,
     title       text not null,
     content     text not null,
     created_at  timestamptz not null default now()
