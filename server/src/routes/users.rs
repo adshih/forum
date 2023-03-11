@@ -37,7 +37,15 @@ async fn login_user(
     Json(req): Json<LoginUser>,
 ) -> Result<Json<User>> {
     let user = sqlx::query!(
-        "select id, username, email, password_hash, created_at from users where username = $1",
+        "
+            select 
+                id, 
+                username, 
+                email, 
+                password_hash, 
+                created_at 
+            from users where username = $1
+        ",
         req.username
     )
     .fetch_optional(&state.db)
@@ -61,17 +69,20 @@ async fn create_user(
     let password_hash = hash_password(req.password).await?;
 
     let result = sqlx::query!(
-        "insert into users (username, email, password_hash) values ($1, $2, $3) returning id, created_at",
+        "
+            insert into users (username, email, password_hash) 
+            values ($1, $2, $3) returning id, created_at
+        ",
         req.username,
         req.email,
         password_hash,
     )
     .fetch_one(&state.db)
     .await
-    .on_constraint("user_username_key", |_| {
+    .on_constraint("users_username_key", |_| {
         Error::unprocessable_entity([("username", "username taken")])
     })
-    .on_constraint("user_email_key", |_| {
+    .on_constraint("users_email_key", |_| {
         Error::unprocessable_entity([("email", "email taken")])
     })?;
 

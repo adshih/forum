@@ -31,7 +31,13 @@ async fn follow_user(
     let mut tx = state.db.begin().await?;
 
     let user = sqlx::query!(
-        "select id, username from users where username = $1",
+        "
+            select 
+                id, 
+                username 
+            from users 
+            where username = $1
+        ",
         username
     )
     .fetch_optional(&mut tx)
@@ -39,7 +45,11 @@ async fn follow_user(
     .ok_or(Error::NotFound)?;
 
     sqlx::query!(
-        "insert into follows(followee_user_id, follower_user_id) values($1, $2) on conflict do nothing",
+        "
+            insert into follows(followee_user_id, follower_user_id) 
+            values($1, $2) 
+            on conflict do nothing
+        ",
         user.id,
         auth_user.id
     )
@@ -62,7 +72,13 @@ async fn unfollow_user(
     let mut tx = state.db.begin().await?;
 
     let user = sqlx::query!(
-        "select id, username from users where username = $1",
+        "
+            select 
+                id, 
+                username 
+            from users 
+            where username = $1
+        ",
         username
     )
     .fetch_optional(&mut tx)
@@ -70,7 +86,10 @@ async fn unfollow_user(
     .ok_or(Error::NotFound)?;
 
     sqlx::query!(
-        "delete from follows where followee_user_id = $1 and follower_user_id = $2",
+        "
+            delete from follows 
+            where followee_user_id = $1 and follower_user_id = $2
+        ",
         user.id,
         auth_user.id
     )
@@ -89,7 +108,14 @@ async fn get_profile(
     Path(username): Path<String>,
 ) -> Result<Json<Profile>> {
     let result = sqlx::query!(
-        r#"select username, score, created_at from users where username = $1"#,
+        "
+            select 
+                username, 
+                score, 
+                created_at 
+            from users 
+            where username = $1
+        ",
         username
     )
     .fetch_optional(&state.db)
