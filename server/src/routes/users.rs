@@ -94,8 +94,27 @@ async fn create_user(
     }))
 }
 
-async fn get_user(auth_user: AuthUser) -> String {
-    auth_user.id.to_string()
+async fn get_user(auth_user: AuthUser, State(state): State<AppState>) -> Result<Json<User>> {
+    let user = sqlx::query!(
+        r#"
+            select
+                username,
+                email,
+                created_at "created_at: DateTime<Local>"
+            from users
+            where id = $1
+        "#,
+        auth_user.id
+    )
+    .fetch_one(&state.db)
+    .await?;
+
+    Ok(Json(User {
+        username: user.username,
+        email: user.email,
+        token: auth_user.to_jwt(&state),
+        created_at: user.created_at,
+    }))
 }
 
 async fn hash_password(password: String) -> Result<String> {

@@ -1,4 +1,3 @@
-<a href="/">/</a>
 <h1>Login</h1>
 <form method="POST">
 	<label>

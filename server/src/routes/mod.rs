@@ -1,4 +1,4 @@
-use axum::{routing::get, Router};
+use axum::{routing::get, Json, Router};
 use sqlx::PgPool;
 
 mod profiles;
@@ -21,9 +21,13 @@ pub fn router(db: PgPool) -> Router {
     };
 
     Router::new()
-        .route("/", get(|| async { "Aw Rats.." }))
+        .route("/", get(root_handler))
         .merge(users::router())
         .merge(profiles::router())
         .merge(threads::router())
         .with_state(app_state)
+}
+
+async fn root_handler() -> Json<String> {
+    Json("Aw Rats...".to_string())
 }

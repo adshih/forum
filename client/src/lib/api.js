@@ -1,10 +1,13 @@
 import { error } from '@sveltejs/kit';
 
 const base = 'http://0.0.0.0:3000';
-// const base = 'https://api.realworld.io/api';
 
 async function send({ method, path, data, token }) {
     const opts = { method, headers: {} };
+
+    if (!path) {
+        path = '';
+    }
 
     if (data) {
         opts.headers['Content-Type'] = 'application/json';
@@ -16,9 +19,6 @@ async function send({ method, path, data, token }) {
     }
 
     const url = `${base}/${path}`;
-
-    console.log(url);
-    console.log(opts);
 
     const res = await fetch(url, opts);
     if (res.ok || res.status === 422) {

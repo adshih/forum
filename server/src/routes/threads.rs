@@ -58,7 +58,7 @@ async fn _unvote_thread(
 async fn get_listing(
     auth_user: Option<AuthUser>,
     State(state): State<AppState>,
-) -> Result<Json<Listing>> {
+) -> Result<Json<Vec<Thread>>> {
     let user_id = if let Some(user) = auth_user {
         Some(user.id)
     } else {
@@ -83,7 +83,7 @@ async fn get_listing(
     .fetch_all(&state.db)
     .await?;
 
-    Ok(Json(Listing { threads }))
+    Ok(Json(threads))
 }
 
 async fn get_thread(
