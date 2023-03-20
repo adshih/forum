@@ -1,6 +1,7 @@
 use axum::{routing::get, Json, Router};
 use sqlx::PgPool;
 
+mod comments;
 mod profiles;
 mod threads;
 pub mod users;
@@ -25,6 +26,7 @@ pub fn router(db: PgPool) -> Router {
         .merge(users::router())
         .merge(profiles::router())
         .merge(threads::router())
+        .merge(comments::router())
         .with_state(app_state)
 }
 

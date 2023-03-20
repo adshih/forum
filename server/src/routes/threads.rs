@@ -22,7 +22,7 @@ struct Thread {
     content: String,
     created_at: DateTime<Local>,
     is_voted: bool,
-    vote_count: i64,
+    vote_count: i32,
     author_id: i64,
 }
 
@@ -75,7 +75,7 @@ async fn get_listing(
                 content, 
                 created_at as "created_at: DateTime<Local>",
                 exists(select * from votes where user_id = $1) as "is_voted!",
-                (select count(*) from votes where thread_id = threads.id) as "vote_count!"
+                (select count(*) from votes where thread_id = threads.id) as "vote_count!: i32"
             from threads
         "#,
         user_id
@@ -107,7 +107,7 @@ async fn get_thread(
                 content, 
                 created_at as "created_at: DateTime<Local>",
                 exists(select * from votes where user_id = $1) as "is_voted!",
-                (select count(*) from votes where thread_id = threads.id) as "vote_count!"
+                (select count(*) from votes where thread_id = threads.id) as "vote_count!: i32"
             from threads 
             where slug = $2
         "#,
@@ -139,7 +139,7 @@ async fn create_thread(
                 title,
                 content,
                 created_at as "created_at: DateTime<Local>",
-                0 as "vote_count!: i64",
+                0 as "vote_count!",
                 false as "is_voted!"
         "#,
         auth_user.id,

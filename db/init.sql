@@ -23,9 +23,25 @@ create table if not exists threads (
     created_at  timestamptz not null default now()
 );
 
-create table if not exists votes (
+create table if not exists thread_votes (
     thread_id   bigint not null references threads(id),
     user_id     bigint not null references users(id),
     created_at  timestamptz not null default now(),
     primary key (thread_id, user_id)
+);
+
+create table if not exists comments (
+    id          bigserial primary key,
+    pid         bigint references comments(id) default null,
+    thread_id   bigint not null references threads(id),
+    user_id     bigint not null references users(id),
+    content     text not null,
+    created_at  timestamptz not null default now()
+);
+
+create table if not exists comment_votes (
+    comment_id  bigint not null references comments(id),
+    user_id     bigint not null references users(id),
+    created_at  timestamptz not null default now(),
+    primary key (comment_id, user_id)
 );
