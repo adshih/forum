@@ -1,8 +1,29 @@
 import * as api from '$lib/api.js';
-import { compile } from 'mdsvex';
+import { fail, redirect } from '@sveltejs/kit';
 
 export async function load({ params }) {
-    const res = await api.get(`api/threads/${params.slug}`);
+    return {
+        thread: await api.get(`api/threads/${params.slug}`),
+        comments: await api.get(`api/threads/${params.slug}/comments`)
+    }
+}
 
-    return res;
+export const actions = {
+    default: async ({ cookies, request }) => {
+        const data = await request.formData();
+        const jwt = cookies.get('jwt');
+        const slug = request.url.split('/').slice(-1);
+
+        if (!jwt) {
+            throw redirect(307, '/login')
+        }
+
+        const body = await api.post(`api/threads/${slug}/comments`, {
+            content: data.get('content')
+        }, jwt);
+
+        if (body.errors) {
+            return fail(401, body);
+        }
+    }
 }
