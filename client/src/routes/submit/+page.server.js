@@ -3,24 +3,24 @@ import { fail, redirect } from '@sveltejs/kit';
 
 export async function load({ cookies }) {
     if (!cookies.get('jwt')) {
-        throw redirect(307, '/');
+        throw redirect(307, '/login');
     }
 }
 
 export const actions = {
     default: async ({ cookies, request }) => {
         const data = await request.formData();
+        const jwt = cookies.get('jwt');
 
         const body = await api.post('api/threads', {
-            username: data.get('title'),
-            password: data.get('content')
-        });
+            title: data.get('title'),
+            content: data.get('content')
+        }, jwt);
 
         if (body.errors) {
-            console.log(body.errors);
-            // return fail(401, body);
+            return fail(401, body);
         }
 
-        // throw redirect(303, '/');
+        throw redirect(303, '/recent');
     }
 }
