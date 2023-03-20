@@ -17,13 +17,13 @@ struct NewThread {
 
 #[derive(Serialize, Deserialize)]
 struct Thread {
-    title: String,
+    author_id: i64,
     slug: String,
+    title: String,
     content: String,
     created_at: DateTime<Local>,
     is_voted: bool,
     vote_count: i32,
-    author_id: i64,
 }
 
 #[derive(Serialize)]
@@ -70,8 +70,8 @@ async fn get_listing(
         r#"
             select
                 user_id as author_id,
-                title, 
                 slug, 
+                title, 
                 content, 
                 created_at as "created_at: DateTime<Local>",
                 exists(select * from votes where user_id = $1) as "is_voted!",
@@ -102,8 +102,8 @@ async fn get_thread(
         r#"
             select
                 user_id as author_id,
-                title, 
                 slug, 
+                title, 
                 content, 
                 created_at as "created_at: DateTime<Local>",
                 exists(select * from votes where user_id = $1) as "is_voted!",
@@ -139,8 +139,8 @@ async fn create_thread(
                 title,
                 content,
                 created_at as "created_at: DateTime<Local>",
-                0 as "vote_count!",
-                false as "is_voted!"
+                false as "is_voted!",
+                0 as "vote_count!"
         "#,
         auth_user.id,
         req.title,
