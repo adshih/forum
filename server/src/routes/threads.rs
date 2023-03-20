@@ -77,6 +77,7 @@ async fn get_listing(
                 exists(select * from votes where user_id = $1) as "is_voted!",
                 (select count(*) from votes where thread_id = threads.id) as "vote_count!: i32"
             from threads
+            order by created_at desc
         "#,
         user_id
     )

@@ -15,6 +15,7 @@ struct NewComment {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct Comment {
+    pid: Option<i64>,
     author_id: i64,
     content: String,
     created_at: DateTime<Local>,
@@ -24,7 +25,7 @@ struct Comment {
 
 pub(crate) fn router() -> Router<AppState> {
     Router::new().route(
-        "/api/comments/:slug",
+        "/api/threads/:slug/comments",
         post(create_top_level_comment).get(get_comments),
     )
 }
@@ -46,6 +47,7 @@ async fn create_top_level_comment(
             from threads
             where slug = $1
             returning
+                pid,
                 user_id as author_id,
                 content,
                 created_at as "created_at: DateTime<Local>",
@@ -62,4 +64,34 @@ async fn create_top_level_comment(
     Ok(Json(comment))
 }
 
-async fn get_comments() {}
+async fn get_comments(
+    State(state): State<AppState>,
+    Path(slug): Path<String>,
+) -> Result<Json<Vec<Comment>>> {
+    let comments = sqlx::query_as!(
+        Comment,
+        r#"
+            with current_thread as (
+                select id
+                from threads
+                where slug = $1
+            )
+
+            select 
+                pid,
+                user_id as author_id,
+                content,
+                created_at as "created_at: DateTime<Local>",
+                false as "is_voted!",
+                0 as "vote_count!"
+            from comments
+            join current_thread on thread_id = current_thread.id
+            order by created_at desc
+        "#,
+        slug
+    )
+    .fetch_all(&state.db)
+    .await?;
+
+    Ok(Json(comments))
+}
