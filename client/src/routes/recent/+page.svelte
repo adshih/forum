@@ -1,13 +1,8 @@
 <script>
+	import PostHeader from '$lib/components/PostHeader.svelte';
 	export let data;
 </script>
 
 {#each data.threads as thread}
-	<a href="/t/{thread.slug}">{thread.title}</a>
+	<PostHeader {thread} />
 {/each}
-
-<style>
-	a {
-		display: block;
-	}
-</style>

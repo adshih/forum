@@ -4,18 +4,18 @@ import { fail, redirect } from '@sveltejs/kit';
 export async function load({ params }) {
     return {
         thread: await api.get(`api/threads/${params.slug}`),
-        comments: await api.get(`api/threads/${params.slug}/comments`)
+        comments: await api.get(`api/threads/${params.slug}/comments`),
+        votes: await api.get(`api/threads/${params.slug}/vote`)
     }
 }
 
 export const actions = {
-    default: async ({ cookies, request }) => {
+    comment: async ({ cookies, request, params: { slug } }) => {
         const data = await request.formData();
         const jwt = cookies.get('jwt');
-        const slug = request.url.split('/').slice(-1);
 
         if (!jwt) {
-            throw redirect(307, '/login')
+            throw redirect(307, '/login');
         }
 
         const body = await api.post(`api/threads/${slug}/comments`, {
@@ -25,5 +25,21 @@ export const actions = {
         if (body.errors) {
             return fail(401, body);
         }
+    },
+
+    vote: async ({ cookies, params: { slug } }) => {
+        const jwt = cookies.get('jwt');
+
+        if (!jwt) {
+            throw redirect(307, '/login');
+        }
+
+        const body = await api.post(`api/threads/${slug}/vote`, {}, jwt);
+
+        if (body.errors) {
+            return fail(401, body);
+        }
+
+        return body;
     }
 }

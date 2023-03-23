@@ -1,37 +1,40 @@
 <script>
-	import Comments from '$lib/Comments.svelte';
+	import Comments from '$lib/components/Comments.svelte';
+	import PostHeader from '$lib/components/PostHeader.svelte';
+	import { hoursSince } from '$lib/util';
 
 	export let data;
 
-	const { thread, comments } = data;
+	const { thread, comments, votes } = data;
 	const paragraphs = thread.content.split(/\r?\n/).filter((par) => par != '');
-	console.log(paragraphs);
 </script>
 
-<a href="/recent">&larr; Back</a>
-
-<h1>{thread.title}</h1>
-<div id="content">
-	{#each paragraphs as paragraph}
-		<p>{paragraph}</p>
-	{/each}
+<div id="outer">
+	<PostHeader {thread} />
+	<div class="indent">
+		<div>
+			{#each paragraphs as paragraph}
+				<p>{paragraph}</p>
+			{/each}
+		</div>
+		<!-- <div>
+			<Comments data={comments} />
+		</div> -->
+	</div>
 </div>
-<Comments data={comments} />
 
 <style>
-	h1 {
-		margin: 0;
+	.indent {
+		margin-left: 2.25rem;
+	}
+
+	#outer {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
 	}
 
 	p {
-		margin-bottom: 1rem;
-	}
-
-	/* article {
-		box-shadow: none;
-	} */
-
-	#content {
-		margin: 1rem 0;
+		margin-bottom: 0.5rem;
 	}
 </style>
