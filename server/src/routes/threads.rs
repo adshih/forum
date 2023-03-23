@@ -18,12 +18,13 @@ struct NewThread {
 #[derive(Serialize, Deserialize)]
 struct Thread {
     author_id: i64,
+    username: String,
     slug: String,
     title: String,
     content: String,
     created_at: DateTime<Local>,
     is_voted: bool,
-    vote_count: i32,
+    vote_count: i64,
 }
 
 #[derive(Serialize)]
@@ -31,21 +32,85 @@ struct Listing {
     threads: Vec<Thread>,
 }
 
+#[derive(Serialize)]
+struct VoteCount {
+    count: i64,
+}
+
 pub(crate) fn router() -> Router<AppState> {
     Router::new()
         .route("/api/threads", post(create_thread).get(get_listing))
         .route("/api/threads/:slug", get(get_thread))
+        .route("/api/threads/:slug/vote", post(vote).get(get_votes))
     // .route(
     //     "/api/threads/:slug/vote",
     //     post(vote_thread).delete(unvote_thread),
     // )
 }
 
-async fn _vote_thread(
-    _auth_user: AuthUser,
-    State(_state): State<AppState>,
-    Path(_slug): Path<String>,
-) {
+async fn get_votes(
+    State(state): State<AppState>,
+    Path(slug): Path<String>,
+) -> Result<Json<VoteCount>> {
+    let count = sqlx::query_as!(
+        VoteCount,
+        r#"
+            with selected_thread as (
+                select id
+                from threads
+                where slug = $1
+            )
+            
+            select count(*) as "count!"
+            from thread_votes
+            join selected_thread on thread_id = id
+        "#,
+        slug
+    )
+    .fetch_one(&state.db)
+    .await?;
+
+    Ok(Json(count))
+}
+
+async fn vote(
+    auth_user: AuthUser,
+    State(state): State<AppState>,
+    Path(slug): Path<String>,
+) -> Result<Json<VoteCount>> {
+    sqlx::query!(
+        "
+            insert into thread_votes(thread_id, user_id)
+            values(
+                (
+                    select id
+                    from threads
+                    where slug = $1
+                )
+                , 
+                $2
+            )
+            on conflict do nothing
+        ",
+        slug,
+        auth_user.id
+    )
+    .execute(&state.db)
+    .await?;
+
+    let count = sqlx::query_as!(
+        VoteCount,
+        r#"
+            select count(*) as "count!"
+            from thread_votes
+            where user_id = $1
+        "#,
+        auth_user.id
+    )
+    .fetch_one(&state.db)
+    .await?;
+
+    Ok(Json(count))
 }
 
 async fn _unvote_thread(
@@ -70,19 +135,24 @@ async fn get_listing(
         r#"
             select
                 user_id as author_id,
+                b.username,
                 slug, 
                 title, 
                 content, 
-                created_at as "created_at: DateTime<Local>",
-                exists(select * from votes where user_id = $1) as "is_voted!",
-                (select count(*) from votes where thread_id = threads.id) as "vote_count!: i32"
-            from threads
-            order by created_at desc
+                a.created_at as "created_at: DateTime<Local>",
+                -- false as "is_voted!",
+                -- 0 as "vote_count!"
+                exists(select * from thread_votes where user_id = $1) as "is_voted!",
+                (select count(*) from thread_votes where thread_id = a.id) as "vote_count!"
+            from threads a
+            join users b on a.user_id = b.id
+            order by a.created_at desc
         "#,
         user_id
     )
     .fetch_all(&state.db)
-    .await?;
+    .await
+    .on_constraint("", |_| Error::NotFound)?;
 
     Ok(Json(threads))
 }
@@ -103,13 +173,17 @@ async fn get_thread(
         r#"
             select
                 user_id as author_id,
+                username,
                 slug, 
                 title, 
                 content, 
-                created_at as "created_at: DateTime<Local>",
-                exists(select * from votes where user_id = $1) as "is_voted!",
-                (select count(*) from votes where thread_id = threads.id) as "vote_count!: i32"
-            from threads 
+                a.created_at as "created_at: DateTime<Local>",
+                -- false as "is_voted!",
+                -- 0 as "vote_count!" 
+                exists(select * from thread_votes where user_id = $1) as "is_voted!",
+                (select count(*) from thread_votes where thread_id = a.id) as "vote_count!"
+            from threads a
+            join users b on a.user_id = b.id
             where slug = $2
         "#,
         user_id,
@@ -129,30 +203,42 @@ async fn create_thread(
 ) -> Result<Json<Thread>> {
     let slug = slugify(&req.title);
 
-    let thread = sqlx::query_as!(
-        Thread,
+    sqlx::query!(
         r#"
             insert into threads(user_id, title, slug, content)
             values($1, $2, $3, $4)
-            returning
-                user_id as author_id,
-                slug,
-                title,
-                content,
-                created_at as "created_at: DateTime<Local>",
-                false as "is_voted!",
-                0 as "vote_count!"
         "#,
         auth_user.id,
         req.title,
         slug,
         req.content
     )
-    .fetch_one(&state.db)
+    .execute(&state.db)
     .await
     .on_constraint("threads_slug_key", |_| {
         Error::unprocessable_entity([("slug", format!("duplicate thread slug: {}", slug))])
     })?;
+
+    let thread = sqlx::query_as!(
+        Thread,
+        r#"
+            select
+                user_id as author_id,
+                username,
+                slug, 
+                title, 
+                content, 
+                a.created_at as "created_at: DateTime<Local>",
+                false as "is_voted!",
+                0 as "vote_count!: i64" 
+            from threads a
+            join users b on a.user_id = b.id
+            where slug = $1
+        "#,
+        slug
+    )
+    .fetch_one(&state.db)
+    .await?;
 
     Ok(Json(thread))
 }
