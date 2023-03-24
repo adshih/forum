@@ -1,13 +1,11 @@
 <script>
-	export let count = 0;
-	export let slug = '';
-
-	const path = slug ? `/t/${slug}` : '';
+	export let text = '0';
+	export let action;
 </script>
 
 <div id="voter">
-	<form method="POST" action="{path}?/vote">
-		<button>{count}</button>
+	<form method="POST" {action}>
+		<button class="secondary">{text}</button>
 	</form>
 </div>
 

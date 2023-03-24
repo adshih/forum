@@ -3,6 +3,16 @@
 	export let data;
 </script>
 
-{#each data.threads as thread}
-	<PostHeader {thread} />
-{/each}
+<div id="posts">
+	{#each data.threads as thread}
+		<PostHeader {thread} />
+	{/each}
+</div>
+
+<style>
+	#posts {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+</style>

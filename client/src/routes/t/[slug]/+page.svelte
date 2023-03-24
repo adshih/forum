@@ -1,7 +1,6 @@
 <script>
 	import Comments from '$lib/components/Comments.svelte';
 	import PostHeader from '$lib/components/PostHeader.svelte';
-	import { hoursSince } from '$lib/util';
 
 	export let data;
 
@@ -17,9 +16,9 @@
 				<p>{paragraph}</p>
 			{/each}
 		</div>
-		<!-- <div>
-			<Comments data={comments} />
-		</div> -->
+		<div>
+			<Comments {thread} {comments} />
+		</div>
 	</div>
 </div>
 

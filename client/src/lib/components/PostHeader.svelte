@@ -1,18 +1,14 @@
 <script>
-	import Voter from '$lib/components/Voter.svelte';
-	import { hoursSince } from '$lib/util';
+	import ThreadVoter from '$lib/components/voters/ThreadVoter.svelte';
+	import { timeSince } from '$lib/util';
 
 	export let thread;
 
-	const hours_since_post = hoursSince(new Date(thread.created_at));
-	const post_time =
-		hours_since_post < 24
-			? `${hours_since_post} hours ago`
-			: `${Math.floor(hours_since_post / 24)} days ago`;
+	const post_time = timeSince(thread.created_at);
 </script>
 
 <div id="post-header">
-	<Voter count={thread.vote_count} slug={thread.slug} />
+	<ThreadVoter {thread} />
 	<div>
 		<a href="/t/{thread.slug}"><h1>{thread.title}</h1></a>
 		<small id="by-line">submitted {post_time} by {thread.username}</small>
