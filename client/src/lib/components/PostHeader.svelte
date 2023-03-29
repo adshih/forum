@@ -11,7 +11,9 @@
 	<ThreadVoter {thread} />
 	<div>
 		<a href="/t/{thread.slug}"><h1>{thread.title}</h1></a>
-		<small id="by-line">submitted {post_time} by {thread.username}</small>
+		<small id="by-line"
+			>submitted {post_time} by <a href={`/u/${thread.username}`}>{thread.username}</a></small
+		>
 	</div>
 </div>
 

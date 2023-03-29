@@ -16,15 +16,15 @@ struct NewThread {
 }
 
 #[derive(Serialize, Deserialize)]
-struct Thread {
-    author_id: i64,
-    username: String,
-    slug: String,
-    title: String,
-    content: String,
-    created_at: DateTime<Local>,
-    is_voted: bool,
-    vote_count: i64,
+pub struct Thread {
+    pub author_id: i64,
+    pub username: String,
+    pub slug: String,
+    pub title: String,
+    pub content: String,
+    pub created_at: DateTime<Local>,
+    pub is_voted: bool,
+    pub vote_count: i64,
 }
 
 #[derive(Serialize)]

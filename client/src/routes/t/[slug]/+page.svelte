@@ -24,7 +24,7 @@
 
 <style>
 	.indent {
-		margin-left: 2.25rem;
+		margin: 0 2.25rem;
 	}
 
 	#outer {

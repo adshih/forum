@@ -15,9 +15,12 @@
 <div id="outer">
 	{#each comments as comment}
 		<div id="comment">
-			<!-- <CommentVoter slug={thread.slug} {comment} /> -->
 			<div id="inner">
-				<small>adam {timeSince(comment.created_at)} | {comment.vote_count} points | vote</small>
+				<small>
+					<a href={`/u/${comment.username}`}>{comment.username}</a>
+					{timeSince(comment.created_at)} | {comment.vote_count} points |
+					<a>vote</a>
+				</small>
 				<div id="content">{comment.content}</div>
 			</div>
 		</div>

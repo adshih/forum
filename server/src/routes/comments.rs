@@ -17,6 +17,7 @@ struct NewComment {
 struct Comment {
     pid: Option<i64>,
     author_id: i64,
+    username: String,
     content: String,
     created_at: DateTime<Local>,
     is_voted: bool,
@@ -36,8 +37,7 @@ async fn create_top_level_comment(
     Path(slug): Path<String>,
     Json(req): Json<NewComment>,
 ) -> Result<Json<Comment>> {
-    let comment = sqlx::query_as!(
-        Comment,
+    sqlx::query!(
         r#"
             insert into comments(thread_id, user_id, content)
             select 
@@ -46,17 +46,34 @@ async fn create_top_level_comment(
                 $3
             from threads
             where slug = $1
-            returning
-                pid,
-                user_id as author_id,
-                content,
-                created_at as "created_at: DateTime<Local>",
-                false as "is_voted!",
-                0 as "vote_count!"
         "#,
         slug,
         auth_user.id,
         req.content
+    )
+    .execute(&state.db)
+    .await?;
+
+    let comment = sqlx::query_as!(
+        Comment,
+        r#"
+            with x as (
+                select t.id thread_id, username
+                from threads t
+                join users u on t.user_id = u.id
+            )
+
+            select
+                pid,
+                user_id as author_id,
+                username,
+                content,
+                created_at as "created_at: DateTime<Local>",
+                false as "is_voted!",
+                0 as "vote_count!"
+            from comments c
+            join x on c.thread_id = x.thread_id
+        "#
     )
     .fetch_one(&state.db)
     .await?;
@@ -72,14 +89,16 @@ async fn get_comments(
         Comment,
         r#"
             with current_thread as (
-                select id
-                from threads
+                select a.id, username
+                from threads a
+                join users b on a.user_id = b.id
                 where slug = $1
             )
 
             select 
                 pid,
                 user_id as author_id,
+                username,
                 content,
                 created_at as "created_at: DateTime<Local>",
                 false as "is_voted!",
