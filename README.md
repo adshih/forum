@@ -2,22 +2,24 @@
 
 *This application is still in early development.*
 
-## Build Instructions
-The client and server need to be run seperately.
+## Setup
+* A postgres instance must be setup with the schema outlined in `db/init.sql`.
+* Create a `.env` file located at `/server` specifying a `DATABASE_URL` and `JWT_SECRET`.  
+Alternatively just rename `.env.sample` to `.env`.
 
-For the server to work, a postgres instance must be setup with the schema outlined in `db/init.sql`.
+## Build and Run
 
-**Run Server**:
+**Server**:
 ```
 cd server
 cargo run
 ```
 
-**Run Client**:
+**Client**:
 ```
 cd client
 npm install
 npm run dev
 ```
 
-After everything is up and running, the website will be up and running at `http://localhost:3000`.
+After everything is up and running, the server will be up and running at `http://localhost:3000` and client at `http://localhost:5172` if the ports are unoccupied.
