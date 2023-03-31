@@ -21,7 +21,7 @@ struct Comment {
     content: String,
     created_at: DateTime<Local>,
     is_voted: bool,
-    vote_count: i32,
+    vote_count: i64,
 }
 
 pub(crate) fn router() -> Router<AppState> {
@@ -70,7 +70,7 @@ async fn create_top_level_comment(
                 content,
                 created_at as "created_at: DateTime<Local>",
                 false as "is_voted!",
-                0 as "vote_count!"
+                0::bigint as "vote_count!"
             from comments c
             join x on c.thread_id = x.thread_id
         "#
@@ -102,7 +102,7 @@ async fn get_comments(
                 content,
                 created_at as "created_at: DateTime<Local>",
                 false as "is_voted!",
-                0 as "vote_count!"
+                0::bigint as "vote_count!"
             from comments
             join current_thread on thread_id = current_thread.id
             order by created_at desc

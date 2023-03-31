@@ -42,10 +42,6 @@ pub(crate) fn router() -> Router<AppState> {
         .route("/api/threads", post(create_thread).get(get_listing))
         .route("/api/threads/:slug", get(get_thread))
         .route("/api/threads/:slug/vote", post(vote).get(get_votes))
-    // .route(
-    //     "/api/threads/:slug/vote",
-    //     post(vote_thread).delete(unvote_thread),
-    // )
 }
 
 async fn get_votes(
@@ -140,8 +136,6 @@ async fn get_listing(
                 title, 
                 content, 
                 a.created_at as "created_at: DateTime<Local>",
-                -- false as "is_voted!",
-                -- 0 as "vote_count!"
                 exists(select * from thread_votes where user_id = $1) as "is_voted!",
                 (select count(*) from thread_votes where thread_id = a.id) as "vote_count!"
             from threads a
@@ -153,6 +147,8 @@ async fn get_listing(
     .fetch_all(&state.db)
     .await
     .on_constraint("", |_| Error::NotFound)?;
+
+    
 
     Ok(Json(threads))
 }
@@ -178,8 +174,6 @@ async fn get_thread(
                 title, 
                 content, 
                 a.created_at as "created_at: DateTime<Local>",
-                -- false as "is_voted!",
-                -- 0 as "vote_count!" 
                 exists(select * from thread_votes where user_id = $1) as "is_voted!",
                 (select count(*) from thread_votes where thread_id = a.id) as "vote_count!"
             from threads a
@@ -230,7 +224,7 @@ async fn create_thread(
                 content, 
                 a.created_at as "created_at: DateTime<Local>",
                 false as "is_voted!",
-                0 as "vote_count!: i64" 
+                0::bigint as "vote_count!" 
             from threads a
             join users b on a.user_id = b.id
             where slug = $1
