@@ -15,6 +15,7 @@ struct NewComment {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct Comment {
+    id: i64,
     pid: Option<i64>,
     author_id: i64,
     username: String,
@@ -24,12 +25,61 @@ struct Comment {
     vote_count: i64,
 }
 
-pub(crate) fn router() -> Router<AppState> {
-    Router::new().route(
-        "/api/threads/:slug/comments",
-        post(create_top_level_comment).get(get_comments),
-    )
+#[derive(Serialize, Deserialize)]
+struct VoteCount {
+    count: i64,
 }
+
+pub(crate) fn router() -> Router<AppState> {
+    Router::new()
+        .route(
+            "/api/threads/:slug/comments",
+            post(create_top_level_comment).get(get_comments),
+        )
+        .route(
+            "/api/threads/:slug/comments/:id",
+            post(create_nested_comment).get(get_nested_comments),
+        )
+        .route("/api/threads/:slug/comments/:id/vote", post(vote_comment))
+}
+
+async fn vote_comment(
+    auth_user: AuthUser,
+    State(state): State<AppState>,
+    Path((_slug, id)): Path<(String, String)>,
+) -> Result<Json<VoteCount>> {
+    let id_actual = i64::from_str_radix(&id, 36).unwrap();
+
+    sqlx::query!(
+        "
+            insert into comment_votes(comment_id, user_id)
+            values($1, $2)
+            on conflict do nothing
+        ",
+        id_actual,
+        auth_user.id
+    )
+    .execute(&state.db)
+    .await?;
+
+    let count = sqlx::query_as!(
+        VoteCount,
+        r#"
+            select count(*) as "count!"
+            from comment_votes
+            where comment_id = $1
+        "#,
+        id_actual
+    )
+    .fetch_one(&state.db)
+    .await?;
+
+    Ok(Json(count))
+}
+
+async fn create_nested_comment() {}
+
+async fn get_nested_comments() {}
 
 async fn create_top_level_comment(
     auth_user: AuthUser,
@@ -64,6 +114,7 @@ async fn create_top_level_comment(
             )
 
             select
+                id,
                 pid,
                 user_id as author_id,
                 username,
@@ -95,7 +146,8 @@ async fn get_comments(
                 where slug = $1
             )
 
-            select 
+            select
+                a.id,
                 pid,
                 user_id as author_id,
                 username,
@@ -103,7 +155,7 @@ async fn get_comments(
                 created_at as "created_at: DateTime<Local>",
                 false as "is_voted!",
                 0::bigint as "vote_count!"
-            from comments
+            from comments a
             join current_thread on thread_id = current_thread.id
             order by created_at desc
         "#,

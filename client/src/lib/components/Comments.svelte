@@ -51,8 +51,4 @@
 		resize: vertical;
 		margin: 0;
 	}
-
-	form {
-		margin: 0;
-	}
 </style>

@@ -74,21 +74,24 @@ async fn vote(
     State(state): State<AppState>,
     Path(slug): Path<String>,
 ) -> Result<Json<VoteCount>> {
+    let thread_id = sqlx::query!(
+        "
+            select id
+            from threads
+            where slug = $1
+        ",
+        slug
+    )
+    .fetch_one(&state.db)
+    .await?;
+
     sqlx::query!(
         "
             insert into thread_votes(thread_id, user_id)
-            values(
-                (
-                    select id
-                    from threads
-                    where slug = $1
-                )
-                , 
-                $2
-            )
+            values($1, $2)
             on conflict do nothing
         ",
-        slug,
+        thread_id.id,
         auth_user.id
     )
     .execute(&state.db)
@@ -99,9 +102,9 @@ async fn vote(
         r#"
             select count(*) as "count!"
             from thread_votes
-            where user_id = $1
+            where thread_id = $1
         "#,
-        auth_user.id
+        thread_id.id
     )
     .fetch_one(&state.db)
     .await?;
@@ -145,10 +148,7 @@ async fn get_listing(
         user_id
     )
     .fetch_all(&state.db)
-    .await
-    .on_constraint("", |_| Error::NotFound)?;
-
-    
+    .await?;
 
     Ok(Json(threads))
 }
