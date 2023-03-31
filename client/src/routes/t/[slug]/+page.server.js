@@ -17,7 +17,7 @@ export const actions = {
         const content = data.get('content');
 
         if (!jwt) {
-            throw redirect(307, '/login');
+            throw redirect(302, '/login');
         }
 
         if (content == '') {
@@ -32,7 +32,6 @@ export const actions = {
             return fail(401, body);
         }
     },
-
     vote: async ({ cookies, params: { slug } }) => {
         const jwt = cookies.get('jwt');
 

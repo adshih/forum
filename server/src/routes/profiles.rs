@@ -14,6 +14,8 @@ use serde::Serialize;
 #[derive(Serialize, Clone)]
 pub struct Profile {
     username: String,
+    score: i64,
+    created_at: DateTime<Local>
 }
 
 pub(crate) fn router() -> Router<AppState> {
@@ -63,18 +65,30 @@ async fn follow_user(
     let mut tx = state.db.begin().await?;
 
     let user = sqlx::query!(
-        "
+        r#"
             select 
                 id, 
-                username 
+                username,
+                created_at as "created_at: DateTime<Local>"
             from users 
             where username = $1
-        ",
+        "#,
         username
     )
     .fetch_optional(&mut tx)
     .await?
     .ok_or(Error::NotFound)?;
+
+    let score = sqlx::query!(
+        r#"
+            select count(*) as "count!"
+            from thread_votes
+            where user_id = $1
+        "#,
+        user.id
+    )
+    .fetch_one(&mut tx)
+    .await?;
 
     sqlx::query!(
         "
@@ -93,6 +107,8 @@ async fn follow_user(
 
     Ok(Json(Profile {
         username: user.username,
+        score: score.count,
+        created_at: user.created_at
     }))
 }
 
@@ -104,18 +120,30 @@ async fn unfollow_user(
     let mut tx = state.db.begin().await?;
 
     let user = sqlx::query!(
-        "
+        r#"
             select 
                 id, 
-                username 
+                username,
+                created_at as "created_at: DateTime<Local>"
             from users 
             where username = $1
-        ",
+        "#,
         username
     )
     .fetch_optional(&mut tx)
     .await?
     .ok_or(Error::NotFound)?;
+
+    let score = sqlx::query!(
+        r#"
+            select count(*) as "count!"
+            from thread_votes
+            where user_id = $1
+        "#,
+        user.id
+    )
+    .fetch_one(&mut tx)
+    .await?;
 
     sqlx::query!(
         "
@@ -132,6 +160,8 @@ async fn unfollow_user(
 
     Ok(Json(Profile {
         username: user.username,
+        score: score.count,
+        created_at: user.created_at
     }))
 }
 
@@ -139,22 +169,35 @@ async fn get_profile(
     State(state): State<AppState>,
     Path(username): Path<String>,
 ) -> Result<Json<Profile>> {
-    let result = sqlx::query!(
-        "
+    let user = sqlx::query!(
+        r#"
             select 
-                username, 
-                score, 
-                created_at 
+                id, 
+                username,
+                created_at as "created_at: DateTime<Local>"
             from users 
             where username = $1
-        ",
+        "#,
         username
     )
     .fetch_optional(&state.db)
     .await?
     .ok_or(Error::NotFound)?;
 
+    let score = sqlx::query!(
+        r#"
+            select count(*) as "count!"
+            from thread_votes
+            where user_id = $1
+        "#,
+        user.id
+    )
+    .fetch_one(&state.db)
+    .await?;
+
     Ok(Json(Profile {
-        username: result.username,
+        username: user.username,
+        score: score.count,
+        created_at: user.created_at
     }))
 }
