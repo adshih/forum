@@ -1,7 +1,6 @@
 <script>
 	import { enhance } from '$app/forms';
 	import { timeSince } from '$lib/util';
-	import CommentVoter from '$lib/components/voters/CommentVoter.svelte';
 
 	export let thread;
 	export let comments;

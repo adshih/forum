@@ -18,9 +18,9 @@
 		min-height: 100vh;
 	}
 
-	:root {
+	/* :root {
 		--border-radius: 0;
-	}
+	} */
 
 	[data-theme='light'],
 	:root:not([data-theme='dark']) {
