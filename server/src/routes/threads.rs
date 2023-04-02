@@ -74,7 +74,7 @@ async fn vote(
     State(state): State<AppState>,
     Path(slug): Path<String>,
 ) -> Result<Json<VoteCount>> {
-    let thread_id = sqlx::query!(
+    let thread_id = sqlx::query_scalar!(
         "
             select id
             from threads
@@ -91,7 +91,7 @@ async fn vote(
             values($1, $2)
             on conflict do nothing
         ",
-        thread_id.id,
+        thread_id,
         auth_user.id
     )
     .execute(&state.db)
@@ -104,7 +104,7 @@ async fn vote(
             from thread_votes
             where thread_id = $1
         "#,
-        thread_id.id
+        thread_id
     )
     .fetch_one(&state.db)
     .await?;

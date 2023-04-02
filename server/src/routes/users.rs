@@ -71,7 +71,8 @@ async fn create_user(
     let result = sqlx::query!(
         "
             insert into users (username, email, password_hash) 
-            values ($1, $2, $3) returning id, created_at
+            values ($1, $2, $3) 
+            returning id, created_at
         ",
         req.username,
         req.email,

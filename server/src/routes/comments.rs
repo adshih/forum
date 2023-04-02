@@ -136,30 +136,35 @@ async fn get_comments(
     State(state): State<AppState>,
     Path(slug): Path<String>,
 ) -> Result<Json<Vec<Comment>>> {
+    let thread_id = sqlx::query_scalar!(
+        "
+            select id
+            from threads
+            where slug = $1
+        ",
+        slug
+    )
+    .fetch_one(&state.db)
+    .await?;
+    
     let comments = sqlx::query_as!(
         Comment,
         r#"
-            with current_thread as (
-                select a.id, username
-                from threads a
-                join users b on a.user_id = b.id
-                where slug = $1
-            )
-
             select
                 a.id,
                 pid,
                 user_id as author_id,
                 username,
                 content,
-                created_at as "created_at: DateTime<Local>",
+                a.created_at as "created_at: DateTime<Local>",
                 false as "is_voted!",
                 0::bigint as "vote_count!"
             from comments a
-            join current_thread on thread_id = current_thread.id
-            order by created_at desc
+            join users b on a.user_id = b.id
+            where a.thread_id = $1
+            order by a.created_at desc
         "#,
-        slug
+        thread_id
     )
     .fetch_all(&state.db)
     .await?;
