@@ -146,7 +146,7 @@ async fn get_comments(
     )
     .fetch_one(&state.db)
     .await?;
-    
+
     let comments = sqlx::query_as!(
         Comment,
         r#"
@@ -158,7 +158,7 @@ async fn get_comments(
                 content,
                 a.created_at as "created_at: DateTime<Local>",
                 false as "is_voted!",
-                0::bigint as "vote_count!"
+                (select count(*) from comment_votes where comment_id = a.id) as "vote_count!"
             from comments a
             join users b on a.user_id = b.id
             where a.thread_id = $1

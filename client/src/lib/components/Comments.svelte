@@ -4,6 +4,7 @@
 
 	export let thread;
 	export let comments;
+	console.log(comments);
 </script>
 
 <form method="POST" action="?/comment">
@@ -15,11 +16,19 @@
 	{#each comments as comment}
 		<div id="comment">
 			<div id="inner">
-				<small>
-					<a href={`/u/${comment.username}`}>{comment.username}</a>
-					{timeSince(comment.created_at)} | {comment.vote_count} points |
-					<a>vote</a>
-				</small>
+				<div>
+					<small>
+						<a href={`/u/${comment.username}`}>{comment.username}</a>
+						{timeSince(comment.created_at)} | {comment.vote_count} points
+						<!-- <a>vote</a>
+						|
+						<a>reply</a> -->
+					</small>
+				</div>
+				<form method="POST" action="/t/{thread.slug}?/vote_comment">
+					<input type="hidden" name="id" value={comment.id.toString(36)} />
+					<button>vote</button>
+				</form>
 				<div id="content">{comment.content}</div>
 			</div>
 		</div>

@@ -36,7 +36,7 @@ export const actions = {
         const jwt = cookies.get('jwt');
 
         if (!jwt) {
-            throw redirect(307, '/login');
+            throw redirect(302, '/login');
         }
 
         const body = await api.post(`api/threads/${slug}/vote`, {}, jwt);
@@ -47,7 +47,21 @@ export const actions = {
 
         return body;
     },
-    vote_comment: async ({ cookies, params: { slug } }) => {
-        console.log(`Voting comment @ ${slug}`);
+    vote_comment: async ({ request, cookies, params: { slug } }) => {
+        const jwt = cookies.get('jwt');
+
+        if (!jwt) {
+            throw redirect(302, '/login');
+        }
+
+        const data = await request.formData();
+        const id = data.get('id');
+        const body = await api.post(`api/threads/${slug}/comments/${id}/vote`, {}, jwt);
+
+        if (body.errors) {
+            return fail(401, body);
+        }
+
+        return body;
     }
 }
