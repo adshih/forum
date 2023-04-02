@@ -2,8 +2,14 @@ import * as api from '$lib/api.js';
 import { fail, redirect } from '@sveltejs/kit';
 
 export async function load({ cookies }) {
-    if (!cookies.get('jwt')) {
+    const jwt = cookies.get('jwt');
+
+    if (!jwt) {
         throw redirect(307, '/');
+    }
+
+    return {
+        profile: await api.get(`api/users`, jwt)
     }
 }
 
