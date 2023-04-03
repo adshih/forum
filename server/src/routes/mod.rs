@@ -31,5 +31,5 @@ pub fn router(db: PgPool) -> Router {
 }
 
 async fn root_handler() -> Json<String> {
-    Json("Aw Rats...".to_string())
+    Json("Welcome to my forum!".to_string())
 }
