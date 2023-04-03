@@ -19,17 +19,16 @@
 				<div>
 					<small>
 						<a href={`/u/${comment.username}`}>{comment.username}</a>
-						{timeSince(comment.created_at)} | {comment.vote_count} points
-						<!-- <a>vote</a>
-						|
-						<a>reply</a> -->
+						{timeSince(comment.created_at)} &#x2022; {comment.vote_count} points &#x2022;
+						<form method="POST" action="/t/{thread.slug}?/vote_comment">
+							<input type="hidden" name="id" value={comment.id.toString(36)} />
+							<button class="button-a"><small>vote</small></button>
+						</form>
 					</small>
 				</div>
-				<form method="POST" action="/t/{thread.slug}?/vote_comment">
-					<input type="hidden" name="id" value={comment.id.toString(36)} />
-					<button>vote</button>
-				</form>
+
 				<div id="content">{comment.content}</div>
+				<!-- <small><a>reply</a></small> -->
 			</div>
 		</div>
 	{/each}
@@ -51,12 +50,35 @@
 		display: flex;
 	}
 
-	#content {
-		margin-top: -0.25rem;
-	}
-
 	textarea {
 		resize: vertical;
 		margin: 0;
+	}
+
+	form {
+		display: inline;
+		margin: 0;
+	}
+
+	.button-a {
+		display: inline;
+		margin: 0;
+		padding: 0;
+		background-color: transparent;
+		border: none;
+		box-shadow: none;
+		color: var(--primary);
+		border-radius: 0;
+	}
+
+	button:hover {
+		text-decoration: underline;
+		color: var(--primary-hover);
+	}
+
+	button:active * {
+		background-color: var(--primary-focus);
+		transition: background-color var(--transition), color var(--transition),
+			text-decoration var(--transition);
 	}
 </style>
