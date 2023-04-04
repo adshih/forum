@@ -8,7 +8,7 @@ export async function load({ cookies }) {
 }
 
 export const actions = {
-    default: async ({ cookies, request }) => {
+    login: async ({ cookies, request }) => {
         const data = await request.formData();
 
         const body = await api.post('api/users/login', {
@@ -22,6 +22,21 @@ export const actions = {
 
         cookies.set('jwt', JSON.stringify(body.token).slice(1, -1), { path: '/' });
 
-        throw redirect(303, '/');
+        throw redirect(302, '/');
+    },
+    register: async ({ cookies, request }) => {
+        const data = await request.formData();
+
+        const body = await api.post('api/users', {
+            username: data.get('username'),
+            password: data.get('password'),
+            email: 'placeholder_email_address'
+        });
+
+        console.log(body);
+
+        cookies.set('jwt', JSON.stringify(body.token).slice(1, -1), { path: '/' });
+
+        throw redirect(302, '/');
     }
 }

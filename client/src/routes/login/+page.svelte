@@ -1,5 +1,5 @@
 <h1>Login</h1>
-<form method="POST">
+<form method="POST" action="?/login">
 	<label>
 		Username
 		<input name="username" type="text" />
@@ -8,5 +8,15 @@
 		Password
 		<input name="password" type="password" />
 	</label>
-	<button type="submit">Log in</button>
+	<div id="buttons">
+		<button type="submit">Log in</button>
+		<button type="submit" formaction="?/register">Register</button>
+	</div>
 </form>
+
+<style>
+	#buttons {
+		display: flex;
+		gap: 1rem;
+	}
+</style>
