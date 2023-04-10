@@ -7,10 +7,12 @@
 	console.log(comments);
 </script>
 
-<form method="POST" action="?/comment">
-	<textarea name="content" rows="4" placeholder="Comment" />
-	<button>Post</button>
-</form>
+<div>
+	<form method="POST" action="?/comment">
+		<textarea name="content" rows="4" placeholder="Comment" />
+		<button>Post</button>
+	</form>
+</div>
 
 <div id="outer">
 	{#each comments as comment}
@@ -28,7 +30,7 @@
 				</div>
 
 				<div id="content">{comment.content}</div>
-				<!-- <small><a>reply</a></small> -->
+				<button class="button-a"><small>reply</small></button>
 			</div>
 		</div>
 	{/each}
@@ -69,6 +71,7 @@
 		box-shadow: none;
 		color: var(--primary);
 		border-radius: 0;
+		text-align: start;
 	}
 
 	button:hover {
