@@ -12,9 +12,16 @@ export const actions = {
         const data = await request.formData();
         const jwt = cookies.get('jwt');
 
+        const title = data.get('title');
+        const content = data.get('content');
+
+        if (title == '' || content == '') {
+            return fail(422);
+        }
+
         const body = await api.post('api/threads', {
-            title: data.get('title'),
-            content: data.get('content')
+            title,
+            content
         }, jwt);
 
         if (body.errors) {

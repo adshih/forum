@@ -11,9 +11,16 @@ export const actions = {
     login: async ({ cookies, request }) => {
         const data = await request.formData();
 
+        const username = data.get('username');
+        const password = data.get('password');
+
+        if (username == '' || password == '') {
+            return fail(422);
+        }
+
         const body = await api.post('api/users/login', {
-            username: data.get('username'),
-            password: data.get('password')
+            username,
+            password
         });
 
         if (body.errors) {
@@ -27,10 +34,16 @@ export const actions = {
     register: async ({ cookies, request }) => {
         const data = await request.formData();
 
+        const username = data.get('username');
+        const password = data.get('password');
+
+        if (username == '' || password == '') {
+            return fail(422);
+        }
+
         const body = await api.post('api/users', {
-            username: data.get('username'),
-            password: data.get('password'),
-            email: 'placeholder_email_address'
+            username,
+            password
         });
 
         console.log(body);
