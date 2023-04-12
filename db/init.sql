@@ -1,7 +1,6 @@
 create table if not exists users (
     id          bigserial primary key,
     username    text unique not null,
-    email       text unique not null,
     password_hash    text not null,
     score       integer default 0,
     created_at  timestamptz not null default now()

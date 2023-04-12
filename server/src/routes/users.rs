@@ -8,7 +8,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Deserialize, Debug)]
 struct NewUser {
     username: String,
-    email: String,
     password: String,
 }
 
@@ -21,7 +20,7 @@ struct LoginUser {
 #[derive(Serialize, Deserialize, Clone, sqlx::FromRow)]
 pub struct User {
     username: String,
-    email: String,
+    // email: String,
     token: String,
     created_at: DateTime<Local>,
 }
@@ -41,7 +40,6 @@ async fn login_user(
             select 
                 id, 
                 username, 
-                email, 
                 password_hash, 
                 created_at 
             from users where username = $1
@@ -55,7 +53,6 @@ async fn login_user(
     verify_password(req.password, user.password_hash.clone()).await?;
 
     Ok(Json(User {
-        email: user.email,
         token: AuthUser { id: user.id }.to_jwt(&state),
         username: user.username,
         created_at: user.created_at.into(),
@@ -70,26 +67,21 @@ async fn create_user(
 
     let result = sqlx::query!(
         "
-            insert into users (username, email, password_hash) 
-            values ($1, $2, $3) 
+            insert into users (username, password_hash) 
+            values ($1, $2) 
             returning id, created_at
         ",
         req.username,
-        req.email,
         password_hash,
     )
     .fetch_one(&state.db)
     .await
     .on_constraint("users_username_key", |_| {
         Error::unprocessable_entity([("username", "username taken")])
-    })
-    .on_constraint("users_email_key", |_| {
-        Error::unprocessable_entity([("email", "email taken")])
     })?;
 
     Ok(Json(User {
         username: req.username,
-        email: req.email,
         token: AuthUser { id: result.id }.to_jwt(&state),
         created_at: result.created_at.into(),
     }))
@@ -100,7 +92,6 @@ async fn get_user(auth_user: AuthUser, State(state): State<AppState>) -> Result<
         r#"
             select
                 username,
-                email,
                 created_at "created_at: DateTime<Local>"
             from users
             where id = $1
@@ -112,7 +103,6 @@ async fn get_user(auth_user: AuthUser, State(state): State<AppState>) -> Result<
 
     Ok(Json(User {
         username: user.username,
-        email: user.email,
         token: auth_user.to_jwt(&state),
         created_at: user.created_at,
     }))
