@@ -42,6 +42,7 @@ pub(crate) fn router() -> Router<AppState> {
         .route("/api/threads", post(create_thread).get(get_listing))
         .route("/api/threads/:slug", get(get_thread))
         .route("/api/threads/:slug/vote", post(vote).get(get_votes))
+        .route("/api/threads/:slug/unvote", post(unvote_thread))
 }
 
 async fn get_votes(
@@ -112,11 +113,47 @@ async fn vote(
     Ok(Json(count))
 }
 
-async fn _unvote_thread(
-    _auth_user: AuthUser,
-    State(_state): State<AppState>,
-    Path(_slug): Path<String>,
-) {
+async fn unvote_thread(
+    auth_user: AuthUser,
+    State(state): State<AppState>,
+    Path(slug): Path<String>,
+) -> Result<Json<VoteCount>> {
+    let thread_id = sqlx::query_scalar!(
+        "
+            select id
+            from threads
+            where slug = $1
+        ",
+        slug
+    )
+    .fetch_one(&state.db)
+    .await?;
+
+    sqlx::query!(
+        "
+            delete from thread_votes
+            where thread_id = $1
+            and user_id = $2
+        ",
+        thread_id,
+        auth_user.id
+    )
+    .execute(&state.db)
+    .await?;
+
+    let count = sqlx::query_as!(
+        VoteCount,
+        r#"
+            select count(*) as "count!"
+            from thread_votes
+            where thread_id = $1
+        "#,
+        thread_id
+    )
+    .fetch_one(&state.db)
+    .await?;
+
+    Ok(Json(count))
 }
 
 async fn get_listing(
@@ -139,7 +176,12 @@ async fn get_listing(
                 title, 
                 content, 
                 a.created_at as "created_at: DateTime<Local>",
-                exists(select * from thread_votes where user_id = $1) as "is_voted!",
+                exists(
+                    select * 
+                    from thread_votes 
+                    where user_id = $1 
+                    and thread_id = a.id
+                ) as "is_voted!",
                 (select count(*) from thread_votes where thread_id = a.id) as "vote_count!"
             from threads a
             join users b on a.user_id = b.id
@@ -174,7 +216,12 @@ async fn get_thread(
                 title, 
                 content, 
                 a.created_at as "created_at: DateTime<Local>",
-                exists(select * from thread_votes where user_id = $1) as "is_voted!",
+                exists(
+                    select * 
+                    from thread_votes 
+                    where user_id = $1 
+                    and thread_id = a.id
+                ) as "is_voted!",
                 (select count(*) from thread_votes where thread_id = a.id) as "vote_count!"
             from threads a
             join users b on a.user_id = b.id

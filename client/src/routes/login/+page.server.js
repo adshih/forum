@@ -46,8 +46,6 @@ export const actions = {
             password
         });
 
-        console.log(body);
-
         cookies.set('jwt', JSON.stringify(body.token).slice(1, -1), { path: '/' });
 
         throw redirect(302, '/');
