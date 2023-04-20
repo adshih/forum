@@ -41,6 +41,10 @@ pub(crate) fn router() -> Router<AppState> {
             post(create_nested_comment).get(get_nested_comments),
         )
         .route("/api/threads/:slug/comments/:id/vote", post(vote_comment))
+        .route(
+            "/api/threads/:slug/comments/:id/unvote",
+            post(unvote_comment),
+        )
 }
 
 async fn vote_comment(
@@ -55,6 +59,40 @@ async fn vote_comment(
             insert into comment_votes(comment_id, user_id)
             values($1, $2)
             on conflict do nothing
+        ",
+        id_actual,
+        auth_user.id
+    )
+    .execute(&state.db)
+    .await?;
+
+    let count = sqlx::query_as!(
+        VoteCount,
+        r#"
+            select count(*) as "count!"
+            from comment_votes
+            where comment_id = $1
+        "#,
+        id_actual
+    )
+    .fetch_one(&state.db)
+    .await?;
+
+    Ok(Json(count))
+}
+
+async fn unvote_comment(
+    auth_user: AuthUser,
+    State(state): State<AppState>,
+    Path((_slug, id)): Path<(String, String)>,
+) -> Result<Json<VoteCount>> {
+    let id_actual = i64::from_str_radix(&id, 36).unwrap();
+
+    sqlx::query!(
+        "
+            delete from comment_votes
+            where comment_id = $1
+            and user_id = $2
         ",
         id_actual,
         auth_user.id
@@ -157,7 +195,12 @@ async fn get_comments(
                 username,
                 content,
                 a.created_at as "created_at: DateTime<Local>",
-                false as "is_voted!",
+                exists(
+                    select *
+                    from comment_votes
+                    where thread_id = $1
+                    and comment_id = a.id
+                ) as "is_voted!",
                 (select count(*) from comment_votes where comment_id = a.id) as "vote_count!"
             from comments a
             join users b on a.user_id = b.id

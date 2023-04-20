@@ -23,7 +23,13 @@
 						{timeSince(comment.created_at)} &#x2022; {comment.vote_count} points &#x2022;
 						<form method="POST" action="/t/{thread.slug}?/vote_comment">
 							<input type="hidden" name="id" value={comment.id.toString(36)} />
-							<button class="button-a"><small>vote</small></button>
+							{#if comment.is_voted}
+								<button class="button-a" formaction="/t/{thread.slug}?/unvote_comment"
+									><small>unvote</small></button
+								>
+							{:else}
+								<button class="button-a"><small>vote</small></button>
+							{/if}
 						</form>
 					</small>
 				</div>

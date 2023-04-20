@@ -78,5 +78,22 @@ export const actions = {
         }
 
         return body;
+    },
+    unvote_comment: async ({ request, cookies, params: { slug } }) => {
+        const jwt = cookies.get('jwt');
+
+        if (!jwt) {
+            throw redirect(302, '/login');
+        }
+
+        const data = await request.formData();
+        const id = data.get('id');
+        const body = await api.post(`api/threads/${slug}/comments/${id}/unvote`, {}, jwt);
+
+        if (body.errors) {
+            return fail(401, body);
+        }
+
+        return body;
     }
 }
