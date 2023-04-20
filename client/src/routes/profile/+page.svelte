@@ -5,13 +5,13 @@
 	let { profile } = data;
 </script>
 
-<div id='stats'>
+<div id="stats">
 	<h1>{profile.username}</h1>
 	<p>Score: {profile.score}</p>
 	<p>Joined: {timeSince(new Date(profile.created_at))}</p>
 </div>
 <form method="POST">
-	<button type="submit">Log out</button>
+	<button type="submit">log out</button>
 </form>
 
 <style>

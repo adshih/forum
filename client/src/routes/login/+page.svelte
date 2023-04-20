@@ -9,8 +9,8 @@
 		<input name="password" type="password" />
 	</label>
 	<div id="buttons">
-		<button type="submit">Log in</button>
-		<button type="submit" formaction="?/register">Register</button>
+		<button type="submit">log in</button>
+		<button type="submit" formaction="?/register">register</button>
 	</div>
 </form>
 

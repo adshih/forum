@@ -8,7 +8,7 @@
 		Content
 		<textarea name="content" rows="5" />
 	</label>
-	<button type="submit">Submit</button>
+	<button type="submit">submit</button>
 </form>
 
 <style>

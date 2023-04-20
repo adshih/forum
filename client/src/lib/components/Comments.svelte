@@ -9,7 +9,7 @@
 <div>
 	<form method="POST" action="?/comment">
 		<textarea name="content" rows="4" placeholder="Comment" />
-		<button>Post</button>
+		<button>submit</button>
 	</form>
 </div>
 
@@ -35,7 +35,7 @@
 				</div>
 
 				<div id="content">{comment.content}</div>
-				<button class="button-a"><small>reply</small></button>
+				<a href={`/t/test/${comment.id}`}><small>reply</small></a>
 			</div>
 		</div>
 	{/each}
