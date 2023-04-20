@@ -4,7 +4,6 @@
 
 	export let thread;
 	export let comments;
-	console.log(comments);
 </script>
 
 <div>
