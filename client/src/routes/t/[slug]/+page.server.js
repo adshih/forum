@@ -3,10 +3,12 @@ import { fail, redirect } from '@sveltejs/kit';
 
 export async function load({ cookies, params }) {
     const jwt = cookies.get('jwt');
+    const thread = await api.get(`api/threads/${params.slug}`, jwt);
+    const comments = await api.get(`api/threads/${params.slug}/comments`, jwt);
 
     return {
-        thread: await api.get(`api/threads/${params.slug}`, jwt),
-        comments: await api.get(`api/threads/${params.slug}/comments`, jwt),
+        thread,
+        comments
     }
 }
 
