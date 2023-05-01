@@ -8,8 +8,12 @@ export async function load({ cookies }) {
         throw redirect(307, '/');
     }
 
+    const profile = await api.get(`api/users`, jwt);
+    const threads = await api.get(`api/profiles/${profile.username}/threads`);
+
     return {
-        profile: await api.get(`api/users`, jwt)
+        profile,
+        threads
     }
 }
 
