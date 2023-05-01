@@ -6,7 +6,7 @@
 </script>
 
 <div id="stats">
-	<h1>{profile.username}</h1>
+	<p>User: <strong>{profile.username}</strong></p>
 	<p>Score: {profile.score}</p>
 	<p>Joined: {timeSince(new Date(profile.created_at))}</p>
 </div>
@@ -17,11 +17,6 @@
 <style>
 	#stats {
 		margin-bottom: 1rem;
-	}
-
-	h1 {
-		font-size: 1rem;
-		margin: 0;
 	}
 
 	p {

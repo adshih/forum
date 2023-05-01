@@ -1,5 +1,5 @@
 <script>
-	import Comments from '$lib/components/Comments.svelte';
+	import CommentTree from '$lib/components/CommentTree.svelte';
 	import PostHeader from '$lib/components/PostHeader.svelte';
 
 	export let data;
@@ -17,7 +17,7 @@
 			{/each}
 		</div>
 		<div>
-			<Comments {thread} {comments} />
+			<CommentTree {thread} {comments} />
 		</div>
 	</div>
 </div>
