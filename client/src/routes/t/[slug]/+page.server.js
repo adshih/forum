@@ -64,38 +64,4 @@ export const actions = {
 
         return body;
     },
-    // vote_comment: async ({ request, cookies, params: { slug } }) => {
-    //     const jwt = cookies.get('jwt');
-
-    //     if (!jwt) {
-    //         throw redirect(301, '/login');
-    //     }
-
-    //     const data = await request.formData();
-    //     const id = data.get('id');
-    //     const body = await api.post(`api/threads/${slug}/comments/${id}/vote`, {}, jwt);
-
-    //     if (body.errors) {
-    //         return fail(400, body);
-    //     }
-
-    //     return body;
-    // },
-    // unvote_comment: async ({ request, cookies, params: { slug } }) => {
-    //     const jwt = cookies.get('jwt');
-
-    //     if (!jwt) {
-    //         throw redirect(301, '/login');
-    //     }
-
-    //     const data = await request.formData();
-    //     const id = data.get('id');
-    //     const body = await api.post(`api/threads/${slug}/comments/${id}/unvote`, {}, jwt);
-
-    //     if (body.errors) {
-    //         return fail(400, body);
-    //     }
-
-    //     return body;
-    // }
 }

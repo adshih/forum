@@ -173,9 +173,16 @@ async fn create_top_level_comment(
 }
 
 async fn get_comment(
+    auth_user: Option<AuthUser>,
     State(state): State<AppState>,
     Path((slug, id)): Path<(String, String)>,
 ) -> Result<Json<Comment>> {
+    let user_id = if let Some(user) = auth_user {
+        Some(user.id)
+    } else {
+        None
+    };
+
     let id = i64::from_str_radix(&id, 36).unwrap();
     let thread_id = sqlx::query_scalar!(
         "
@@ -202,7 +209,8 @@ async fn get_comment(
                     select *
                     from comment_votes
                     where thread_id = $1
-                    and comment_id = a.id
+                        and comment_id = a.id
+                        and user_id = $3
                 ) as "is_voted!",
                 (select count(*) from comment_votes where comment_id = a.id) as "vote_count!"
             from comments a
@@ -212,7 +220,8 @@ async fn get_comment(
             order by a.created_at desc
         "#,
         thread_id,
-        id
+        id,
+        user_id
     )
     .fetch_one(&state.db)
     .await?;
@@ -269,9 +278,16 @@ async fn get_child_comments(
 }
 
 async fn get_comments(
+    auth_user: Option<AuthUser>,
     State(state): State<AppState>,
     Path(slug): Path<String>,
 ) -> Result<Json<Vec<Comment>>> {
+    let user_id = if let Some(user) = auth_user {
+        Some(user.id)
+    } else {
+        None
+    };
+
     let thread_id = sqlx::query_scalar!(
         "
             select id
@@ -297,7 +313,8 @@ async fn get_comments(
                     select *
                     from comment_votes
                     where thread_id = $1
-                    and comment_id = a.id
+                        and comment_id = a.id
+                        and user_id = $2
                 ) as "is_voted!",
                 (select count(*) from comment_votes where comment_id = a.id) as "vote_count!"
             from comments a
@@ -305,7 +322,8 @@ async fn get_comments(
             where a.thread_id = $1
             order by a.created_at desc
         "#,
-        thread_id
+        thread_id,
+        user_id
     )
     .fetch_all(&state.db)
     .await?;

@@ -1,4 +1,5 @@
 import * as api from '$lib/api.js';
+import { fail, redirect } from '@sveltejs/kit';
 
 export async function load({ cookies, params }) {
     const jwt = cookies.get('jwt');
