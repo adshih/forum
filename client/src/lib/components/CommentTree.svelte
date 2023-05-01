@@ -36,9 +36,4 @@
 		display: inline;
 		margin: 0;
 	}
-
-	button:hover {
-		text-decoration: underline;
-		color: var(--primary-hover);
-	}
 </style>
