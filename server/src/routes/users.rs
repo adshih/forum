@@ -20,7 +20,7 @@ struct LoginUser {
 #[derive(Serialize, Deserialize, Clone, sqlx::FromRow)]
 pub struct User {
     username: String,
-    // email: String,
+    score: i64,
     token: String,
     created_at: DateTime<Local>,
 }
@@ -52,8 +52,20 @@ async fn login_user(
 
     verify_password(req.password, user.password_hash.clone()).await?;
 
+    let score = sqlx::query_scalar!(
+        r#"
+            select count(*) as "count!"
+            from thread_votes
+            where user_id = $1
+        "#,
+        user.id
+    )
+    .fetch_one(&state.db)
+    .await?;
+
     Ok(Json(User {
         token: AuthUser { id: user.id }.to_jwt(&state),
+        score,
         username: user.username,
         created_at: user.created_at.into(),
     }))
@@ -82,6 +94,7 @@ async fn create_user(
 
     Ok(Json(User {
         username: req.username,
+        score: 0,
         token: AuthUser { id: result.id }.to_jwt(&state),
         created_at: result.created_at.into(),
     }))
@@ -101,8 +114,20 @@ async fn get_user(auth_user: AuthUser, State(state): State<AppState>) -> Result<
     .fetch_one(&state.db)
     .await?;
 
+    let score = sqlx::query_scalar!(
+        r#"
+            select count(*) as "count!"
+            from thread_votes
+            where user_id = $1
+        "#,
+        auth_user.id
+    )
+    .fetch_one(&state.db)
+    .await?;
+
     Ok(Json(User {
         username: user.username,
+        score,
         token: auth_user.to_jwt(&state),
         created_at: user.created_at,
     }))
