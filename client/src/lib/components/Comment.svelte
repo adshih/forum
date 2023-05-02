@@ -1,4 +1,5 @@
 <script>
+	import { enhance } from '$app/forms';
 	import { timeSince } from '$lib/util.js';
 
 	export let comment;
@@ -13,7 +14,7 @@
 		<small>
 			<a href={`/u/${comment.username}`}>{comment.username}</a>
 			{timeSince(comment.created_at)} &#x2022; {comment.vote_count} points &#x2022;
-			<form method="POST" action="/t/{thread.slug}/{id}?/vote">
+			<form method="POST" action="/t/{thread.slug}/{id}?/vote" use:enhance>
 				<input type="hidden" name="id" value={id} />
 				{#if comment.is_voted}
 					<button class="button-a" formaction="/t/{thread.slug}/{id}?/unvote"

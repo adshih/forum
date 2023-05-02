@@ -1,11 +1,14 @@
 <script>
 	import { timeSince } from '$lib/util';
+	import { enhance } from '$app/forms';
+
 	export let thread;
+
 	const post_time = timeSince(thread.created_at);
 </script>
 
 <div id="post-header">
-	<form method="POST" action="/t/{thread.slug}?/vote">
+	<form method="POST" action="/t/{thread.slug}?/vote" use:enhance>
 		{#if thread.is_voted}
 			<button
 				id="vote-button"
