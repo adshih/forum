@@ -29,6 +29,12 @@
 		justify-content: space-between;
 	}
 
+	#posts {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
 	#stats {
 		margin-bottom: 1rem;
 	}
