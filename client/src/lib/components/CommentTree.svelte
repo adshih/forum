@@ -8,7 +8,7 @@
 </script>
 
 <div>
-	<form method="POST" action="?/comment">
+	<form method="POST" action="?/comment" use:enhance>
 		<textarea name="content" rows="4" placeholder="Comment" />
 		<button>submit</button>
 	</form>

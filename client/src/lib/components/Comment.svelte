@@ -30,7 +30,7 @@
 	<div id="content">{comment.content}</div>
 
 	{#if !focus}
-		<a href={`/t/${thread.slug}/${comment.id}`}><small>reply</small></a>
+		<a href={`/t/${thread.slug}/${id}`}><small>reply</small></a>
 	{:else}
 		<div id="reply-form">
 			<form method="POST" action="?/reply">
