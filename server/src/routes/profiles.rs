@@ -15,7 +15,7 @@ use serde::Serialize;
 pub struct Profile {
     username: String,
     score: i64,
-    created_at: DateTime<Local>
+    created_at: DateTime<Local>,
 }
 
 pub(crate) fn router() -> Router<AppState> {
@@ -42,7 +42,12 @@ async fn get_threads(
                 title,
                 content,
                 a.created_at as "created_at: DateTime<Local>",
-                exists(select * from thread_votes where user_id = b.id) as "is_voted!",
+                exists(
+                    select * 
+                    from thread_votes 
+                    where user_id = b.id 
+                        and thread_id = a.id
+                ) as "is_voted!",
                 (select count(*) from thread_votes where thread_id = a.id) as "vote_count!"
             from threads a
             join users b on a.user_id = b.id
@@ -108,7 +113,7 @@ async fn follow_user(
     Ok(Json(Profile {
         username: user.username,
         score: score.count,
-        created_at: user.created_at
+        created_at: user.created_at,
     }))
 }
 
@@ -161,7 +166,7 @@ async fn unfollow_user(
     Ok(Json(Profile {
         username: user.username,
         score: score.count,
-        created_at: user.created_at
+        created_at: user.created_at,
     }))
 }
 
@@ -198,6 +203,6 @@ async fn get_profile(
     Ok(Json(Profile {
         username: user.username,
         score: score.count,
-        created_at: user.created_at
+        created_at: user.created_at,
     }))
 }
