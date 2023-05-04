@@ -4,7 +4,7 @@
 
 	export let data;
 
-	let { profile, threads } = data;
+	$: ({ profile, threads } = data);
 </script>
 
 <div id="stats">
@@ -14,7 +14,7 @@
 </div>
 
 <div id="posts">
-	{#each data.threads as thread}
+	{#each threads as thread}
 		<PostHeader {thread} />
 	{/each}
 </div>

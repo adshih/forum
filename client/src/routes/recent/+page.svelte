@@ -1,7 +1,7 @@
 <script>
 	import PostHeader from '$lib/components/PostHeader.svelte';
 	export let data;
-	console.log(data.threads);
+	$: ({ threads } = data);
 </script>
 
 {#if data.threads.length === 0}
@@ -10,7 +10,7 @@
 {/if}
 
 <div id="posts">
-	{#each data.threads as thread}
+	{#each threads as thread}
 		<PostHeader {thread} />
 	{/each}
 </div>

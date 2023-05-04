@@ -4,11 +4,12 @@
 
 	export let data;
 
-	const paragraphs = data.thread.content.split(/\r?\n/).filter((par) => par != '');
+	$: ({ thread, comments } = data);
+	$: paragraphs = thread.content.split(/\r?\n/).filter((par) => par != '');
 </script>
 
 <div id="outer">
-	<PostHeader thread={data.thread} />
+	<PostHeader {thread} />
 	<div class="indent">
 		<div>
 			{#each paragraphs as paragraph}
@@ -16,7 +17,7 @@
 			{/each}
 		</div>
 		<div>
-			<CommentTree thread={data.thread} comments={data.comments} />
+			<CommentTree {thread} {comments} />
 		</div>
 	</div>
 </div>
