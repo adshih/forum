@@ -119,7 +119,58 @@ async fn unvote_comment(
     Ok(Json(count))
 }
 
-async fn create_nested_comment() {}
+async fn create_nested_comment(
+    auth_user: AuthUser,
+    State(state): State<AppState>,
+    Path((slug, pid)): Path<(String, String)>,
+    Json(req): Json<NewComment>,
+) -> Result<Json<Comment>> {
+    sqlx::query!(
+        r#"
+            insert into comments(thread_id, user_id, content, pid)
+            select 
+                id as thread_id,
+                $2,
+                $3,
+                $4
+            from threads
+            where slug = $1
+        "#,
+        slug,
+        auth_user.id,
+        req.content,
+        i64::from_str_radix(&pid, 36).unwrap()
+    )
+    .execute(&state.db)
+    .await?;
+
+    let comment = sqlx::query_as!(
+        Comment,
+        r#"
+            with x as (
+                select t.id thread_id, username
+                from threads t
+                join users u on t.user_id = u.id
+            )
+
+            select
+                id,
+                pid,
+                user_id as author_id,
+                username,
+                content,
+                created_at as "created_at: DateTime<Local>",
+                false as "is_voted!",
+                0::bigint as "vote_count!"
+            from comments c
+            join x on c.thread_id = x.thread_id
+        "#
+    )
+    .fetch_one(&state.db)
+    .await?;
+
+    Ok(Json(comment))
+}
 
 async fn create_top_level_comment(
     auth_user: AuthUser,

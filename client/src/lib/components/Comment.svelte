@@ -33,7 +33,7 @@
 		<a href={`/t/${thread.slug}/${id}`}><small>reply</small></a>
 	{:else}
 		<div id="reply-form">
-			<form method="POST" action="?/reply">
+			<form method="POST" action="?/reply" use:enhance>
 				<textarea name="content" rows="4" placeholder="Comment" />
 				<button>reply</button>
 			</form>

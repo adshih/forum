@@ -49,5 +49,25 @@ export const actions = {
 
         return body;
     },
-    reply: async ({ request, cookies, params: { slug } }) => { }
+    reply: async ({ cookies, request, params: { slug, comment_id } }) => {
+        const data = await request.formData();
+        const jwt = cookies.get('jwt');
+        const content = data.get('content');
+
+        if (!jwt) {
+            throw redirect(302, '/login');
+        }
+
+        if (content == '') {
+            return fail(422);
+        }
+
+        const body = await api.post(`api/threads/${slug}/comments/${comment_id}`, {
+            content
+        }, jwt);
+
+        if (body.errors) {
+            return fail(401, body);
+        }
+    },
 }
