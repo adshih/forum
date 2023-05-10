@@ -1,5 +1,5 @@
 use super::{AppState, Result};
-use crate::auth::AuthUser;
+use crate::auth::{AuthUser, MaybeAuthUser};
 use axum::{
     extract::{Path, State},
     routing::{get, post},
@@ -218,16 +218,10 @@ async fn create_top_level_comment(
 }
 
 async fn get_comment(
-    auth_user: Option<AuthUser>,
+    auth_user: MaybeAuthUser,
     State(state): State<AppState>,
     Path((slug, id)): Path<(String, String)>,
 ) -> Result<Json<Comment>> {
-    let user_id = if let Some(user) = auth_user {
-        Some(user.id)
-    } else {
-        None
-    };
-
     let id = i64::from_str_radix(&id, 36).unwrap();
     let thread_id = sqlx::query_scalar!(
         "
@@ -266,7 +260,7 @@ async fn get_comment(
         "#,
         thread_id,
         id,
-        user_id
+        auth_user.id()
     )
     .fetch_one(&state.db)
     .await?;
@@ -323,16 +317,10 @@ async fn get_child_comments(
 }
 
 async fn get_comments(
-    auth_user: Option<AuthUser>,
+    auth_user: MaybeAuthUser,
     State(state): State<AppState>,
     Path(slug): Path<String>,
 ) -> Result<Json<Vec<Comment>>> {
-    let user_id = if let Some(user) = auth_user {
-        Some(user.id)
-    } else {
-        None
-    };
-
     let thread_id = sqlx::query_scalar!(
         "
             select id
@@ -368,7 +356,7 @@ async fn get_comments(
             order by a.created_at desc
         "#,
         thread_id,
-        user_id
+        auth_user.id()
     )
     .fetch_all(&state.db)
     .await?;

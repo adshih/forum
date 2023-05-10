@@ -1,19 +1,25 @@
-use axum::{
-    async_trait,
-    extract::{FromRef, FromRequestParts},
-    http::{header::AUTHORIZATION, request::Parts, HeaderValue, StatusCode},
-};
+use crate::error::Error;
+use crate::routes::AppState;
+use axum::async_trait;
+use axum::extract::{FromRef, FromRequestParts};
+use axum::http::{header::AUTHORIZATION, request::Parts, HeaderValue};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
-
-use crate::routes::AppState;
 
 const DEFAULT_SESSION_LENGTH: time::Duration = time::Duration::weeks(2);
 const SCHEME_PREFIX: &str = "Bearer ";
 
 pub struct AuthUser {
     pub id: i64,
+}
+
+pub struct MaybeAuthUser(pub Option<AuthUser>);
+
+impl MaybeAuthUser {
+    pub fn id(&self) -> Option<i64> {
+        self.0.as_ref().map(|auth_user| auth_user.id)
+    }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -37,10 +43,10 @@ impl AuthUser {
         .expect("JWT encode failed")
     }
 
-    fn from_authorization(state: &AppState, auth_header: &HeaderValue) -> Result<Self, StatusCode> {
+    fn from_authorization(state: &AppState, auth_header: &HeaderValue) -> Result<Self, Error> {
         let auth_header = auth_header.to_str().map_err(|_e| {
             log::debug!("Authorization header is not UTF-8");
-            StatusCode::UNAUTHORIZED
+            Error::Unauthorized
         })?;
 
         if !auth_header.starts_with(SCHEME_PREFIX) {
@@ -48,7 +54,7 @@ impl AuthUser {
                 "Authorization header is using the wrong scheme: {:?}",
                 auth_header
             );
-            return Err(StatusCode::UNAUTHORIZED);
+            return Err(Error::Unauthorized);
         }
 
         let token = &auth_header[SCHEME_PREFIX.len()..];
@@ -64,14 +70,14 @@ impl AuthUser {
                 auth_header,
                 e
             );
-            StatusCode::UNAUTHORIZED
+            Error::Unauthorized
         })?;
 
         let claims = jwt.claims;
 
         if claims.exp < OffsetDateTime::now_utc().unix_timestamp() {
             log::debug!("Token expired");
-            return Err(StatusCode::UNAUTHORIZED);
+            return Err(Error::Unauthorized);
         }
 
         Ok(Self { id: claims.id })
@@ -84,15 +90,36 @@ where
     S: Send + Sync,
     AppState: FromRef<S>,
 {
-    type Rejection = StatusCode;
+    type Rejection = Error;
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let state = AppState::from_ref(state);
         let auth_header = parts
             .headers
             .get(AUTHORIZATION)
-            .ok_or(StatusCode::UNAUTHORIZED)?;
+            .ok_or(Error::Unauthorized)?;
 
         Self::from_authorization(&state, auth_header)
+    }
+}
+
+#[async_trait]
+impl<S> FromRequestParts<S> for MaybeAuthUser
+where
+    S: Send + Sync,
+    AppState: FromRef<S>,
+{
+    type Rejection = Error;
+
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let state: AppState = AppState::from_ref(state);
+
+        Ok(Self(
+            parts
+                .headers
+                .get(AUTHORIZATION)
+                .map(|auth_header| AuthUser::from_authorization(&state, auth_header))
+                .transpose()?,
+        ))
     }
 }
