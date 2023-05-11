@@ -1,5 +1,5 @@
 use super::{AppState, Error, Result, ResultExt};
-use crate::auth::AuthUser;
+use crate::auth::{AuthUser, MaybeAuthUser};
 use axum::{
     extract::{Path, State},
     routing::{get, post},
@@ -157,15 +157,9 @@ async fn unvote_thread(
 }
 
 async fn get_listing(
-    auth_user: Option<AuthUser>,
+    auth_user: MaybeAuthUser,
     State(state): State<AppState>,
 ) -> Result<Json<Vec<Thread>>> {
-    let user_id = if let Some(user) = auth_user {
-        Some(user.id)
-    } else {
-        None
-    };
-
     let threads = sqlx::query_as!(
         Thread,
         r#"
@@ -187,7 +181,7 @@ async fn get_listing(
             join users b on a.user_id = b.id
             order by a.created_at desc
         "#,
-        user_id
+        auth_user.id()
     )
     .fetch_all(&state.db)
     .await?;
@@ -196,16 +190,10 @@ async fn get_listing(
 }
 
 async fn get_thread(
-    auth_user: Option<AuthUser>,
+    auth_user: MaybeAuthUser,
     State(state): State<AppState>,
     Path(slug): Path<String>,
 ) -> Result<Json<Thread>> {
-    let user_id = if let Some(user) = auth_user {
-        Some(user.id)
-    } else {
-        None
-    };
-
     let thread = sqlx::query_as!(
         Thread,
         r#"
@@ -227,7 +215,7 @@ async fn get_thread(
             join users b on a.user_id = b.id
             where slug = $2
         "#,
-        user_id,
+        auth_user.id(),
         slug
     )
     .fetch_optional(&state.db)

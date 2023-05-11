@@ -2,6 +2,7 @@ use super::threads::Thread;
 use super::AppState;
 use super::Result;
 use crate::auth::AuthUser;
+use crate::auth::MaybeAuthUser;
 use crate::error::{Error, ResultExt};
 use axum::{
     extract::{Path, State},
@@ -29,6 +30,7 @@ pub(crate) fn router() -> Router<AppState> {
 }
 
 async fn get_threads(
+    auth_user: MaybeAuthUser,
     State(state): State<AppState>,
     Path(username): Path<String>,
 ) -> Result<Json<Vec<Thread>>> {
@@ -45,7 +47,7 @@ async fn get_threads(
                 exists(
                     select * 
                     from thread_votes 
-                    where user_id = b.id 
+                    where user_id = $2
                         and thread_id = a.id
                 ) as "is_voted!",
                 (select count(*) from thread_votes where thread_id = a.id) as "vote_count!"
@@ -54,7 +56,8 @@ async fn get_threads(
             where b.username = $1
             order by a.created_at desc
         "#,
-        username
+        username,
+        auth_user.id()
     )
     .fetch_all(&state.db)
     .await?;
