@@ -27,7 +27,7 @@ export const actions = {
             return fail(401, body);
         }
 
-        cookies.set('jwt', JSON.stringify(body.token).slice(1, -1), { path: '/' });
+        cookies.set('jwt', body.token, { path: '/' });
 
         throw redirect(302, '/');
     },
@@ -46,7 +46,7 @@ export const actions = {
             password
         });
 
-        cookies.set('jwt', JSON.stringify(body.token).slice(1, -1), { path: '/' });
+        cookies.set('jwt', body.token, { path: '/' });
 
         throw redirect(302, '/');
     }
