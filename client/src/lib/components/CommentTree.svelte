@@ -12,7 +12,7 @@
 	<div>
 		<form method="POST" action="?/comment" use:enhance>
 			<textarea name="content" rows="4" placeholder="Comment" />
-			<button>submit</button>
+			<button>Submit</button>
 		</form>
 	</div>
 {/if}
@@ -38,5 +38,9 @@
 	form {
 		display: inline;
 		margin: 0;
+	}
+
+	button {
+		width: auto;
 	}
 </style>

@@ -35,7 +35,7 @@
 		<div id="reply-form">
 			<form method="POST" action="?/reply" use:enhance>
 				<textarea name="content" rows="4" placeholder="Comment" />
-				<button>reply</button>
+				<button>Reply</button>
 			</form>
 		</div>
 	{/if}
@@ -61,6 +61,10 @@
 		margin: 0;
 	}
 
+	button {
+		width: auto;
+	}
+
 	.button-a {
 		display: inline;
 		margin: 0;
@@ -71,6 +75,7 @@
 		color: var(--primary);
 		border-radius: 0;
 		text-align: start;
+		width: auto;
 	}
 
 	.button-a:hover {

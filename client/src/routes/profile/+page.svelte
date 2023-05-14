@@ -13,7 +13,7 @@
 		<p>Joined: {timeSince(new Date(profile.created_at))}</p>
 	</div>
 	<form method="POST">
-		<button type="submit">log out</button>
+		<button type="submit">Log out</button>
 	</form>
 </div>
 

@@ -1,6 +1,6 @@
 <div id="outer">
-	<h1>Login</h1>
-	<form method="POST" action="?/login">
+	<h1>Create an Account</h1>
+	<form method="POST" action="?/signup">
 		<label>
 			Username
 			<input name="username" type="text" />
@@ -9,10 +9,10 @@
 			Password
 			<input name="password" type="password" />
 		</label>
-		<button type="submit">Log in</button>
+		<button type="submit">Submit</button>
 		<p>
-			Don't have an account?
-			<a href="/signup">Sign up</a>
+			Already have an account?
+			<a href="/login">Log in</a>
 		</p>
 	</form>
 </div>
@@ -27,7 +27,6 @@
 	form {
 		width: 15rem;
 	}
-
 	h1 {
 		margin: 0;
 		margin-bottom: 1rem;

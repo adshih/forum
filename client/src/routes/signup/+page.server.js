@@ -8,7 +8,7 @@ export async function load({ cookies }) {
 }
 
 export const actions = {
-    login: async ({ cookies, request }) => {
+    signup: async ({ cookies, request }) => {
         const data = await request.formData();
 
         const username = data.get('username');
@@ -18,14 +18,10 @@ export const actions = {
             return fail(422);
         }
 
-        const body = await api.post('api/users/login', {
+        const body = await api.post('api/users', {
             username,
             password
         });
-
-        if (body.errors) {
-            return fail(401, body);
-        }
 
         cookies.set('jwt', body.token, { path: '/' });
 

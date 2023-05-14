@@ -1,7 +1,7 @@
-button {
+/* button {
     width: auto;
     padding: 0.03125rem 0.5rem;
-}
+} */
 
 [data-theme='light'],
 :root:not([data-theme='dark']) {

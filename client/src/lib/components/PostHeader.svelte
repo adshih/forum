@@ -33,6 +33,10 @@
 </div>
 
 <style>
+	#vote-button {
+		padding: 0;
+	}
+
 	#post-header {
 		display: flex;
 	}
