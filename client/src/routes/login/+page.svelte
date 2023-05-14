@@ -1,5 +1,5 @@
 <div id="outer">
-	<h1>Login</h1>
+	<h1>Log in</h1>
 	<form method="POST" action="?/login">
 		<label>
 			Username

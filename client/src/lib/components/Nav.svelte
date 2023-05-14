@@ -14,7 +14,7 @@
 	<ul>
 		{#if !data.user}
 			<li>
-				<a href="/login">Login</a>
+				<a href="/login">Log in</a>
 			</li>
 		{:else}
 			<li>
