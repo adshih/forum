@@ -1,6 +1,7 @@
 import { error } from '@sveltejs/kit';
+import { API_URL } from '$env/static/private';
 
-const base = 'http://0.0.0.0:3000';
+const base = API_URL;
 
 async function send({ method, path, data, token }) {
     const opts = { method, headers: {} };
