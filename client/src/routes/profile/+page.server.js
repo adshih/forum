@@ -9,7 +9,7 @@ export async function load({ cookies }) {
     }
 
     const profile = await api.get(`api/users`, jwt);
-    const threads = await api.get(`api/profiles/${profile.username}/threads`);
+    const threads = await api.get(`api/profiles/${profile.username}/threads`, jwt);
 
     return {
         profile,
