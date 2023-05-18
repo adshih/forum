@@ -89,7 +89,7 @@ async fn create_user(
     .fetch_one(&state.db)
     .await
     .on_constraint("users_username_key", |_| {
-        Error::unprocessable_entity([("username", "username taken")])
+        Error::unprocessable_entity([("username", "is already taken")])
     })?;
 
     Ok(Json(User {
