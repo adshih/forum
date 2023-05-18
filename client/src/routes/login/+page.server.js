@@ -23,6 +23,8 @@ export const actions = {
             password
         });
 
+        console.log(body);
+
         if (body.errors) {
             return fail(401, body);
         }

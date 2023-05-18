@@ -1,20 +1,29 @@
+<script>
+	import ListErrors from '$lib/components/ListErrors.svelte';
+	import { enhance } from '$app/forms';
+	export let form;
+</script>
+
 <div id="outer">
 	<h1>Log in</h1>
-	<form method="POST" action="?/login">
-		<label>
-			Username
-			<input name="username" type="text" />
-		</label>
-		<label>
-			Password
-			<input name="password" type="password" />
-		</label>
-		<button type="submit">Log in</button>
-		<p>
-			Don't have an account?
-			<a href="/signup">Sign up</a>
-		</p>
-	</form>
+	<div>
+		<ListErrors errors={form?.errors} />
+		<form method="POST" action="?/login" use:enhance>
+			<label>
+				Username
+				<input name="username" type="text" />
+			</label>
+			<label>
+				Password
+				<input name="password" type="password" />
+			</label>
+			<button type="submit">Log in</button>
+			<p>
+				Don't have an account?
+				<a href="/signup">Sign up</a>
+			</p>
+		</form>
+	</div>
 </div>
 
 <style>

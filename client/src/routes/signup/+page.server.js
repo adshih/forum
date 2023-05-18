@@ -23,6 +23,10 @@ export const actions = {
             password
         });
 
+        if (body.errors) {
+            return fail(401, body);
+        }
+
         cookies.set('jwt', body.token, { path: '/' });
 
         throw redirect(302, '/');
