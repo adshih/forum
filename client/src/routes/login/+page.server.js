@@ -17,13 +17,11 @@ export const actions = {
         if (username == '' || password == '') {
             return fail(422);
         }
-
+            
         const body = await api.post('api/users/login', {
             username,
             password
         });
-
-        console.log(body);
 
         if (body.errors) {
             return fail(401, body);

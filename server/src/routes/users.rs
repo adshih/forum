@@ -48,7 +48,7 @@ async fn login_user(
     )
     .fetch_optional(&state.db)
     .await?
-    .ok_or_else(|| Error::unprocessable_entity([("username", "does not exist")]))?;
+    .ok_or_else(|| Error::unprocessable_entity([("username or password", "is incorrect")]))?;
 
     verify_password(req.password, user.password_hash.clone()).await?;
 
@@ -149,7 +149,9 @@ async fn verify_password(password: String, password_hash: String) -> Result<()> 
 
     hash.verify_password(&[&Argon2::default()], password)
         .map_err(|e| match e {
-            argon2::password_hash::Error::Password => Error::Unauthorized,
+            argon2::password_hash::Error::Password => {
+                Error::unprocessable_entity([("username or password", "is incorrect")])
+            }
             _ => anyhow::anyhow!("Failed to verify password hash: {}", e).into(),
         })
 }

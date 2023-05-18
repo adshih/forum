@@ -22,6 +22,7 @@ async function send({ method, path, data, token }) {
     const url = `${base}/${path}`;
 
     const res = await fetch(url, opts);
+    console.log(res);
     if (res.ok || res.status === 422) {
         const text = await res.text();
         return text ? JSON.parse(text) : {};
