@@ -29,7 +29,7 @@
 
 	<div id="content">{comment.content}</div>
 
-	{#if !focus}
+	<!-- {#if !focus}
 		<a href={`/t/${thread.slug}/${id}`}><small>reply</small></a>
 	{:else}
 		<div id="reply-form">
@@ -38,7 +38,7 @@
 				<button>Reply</button>
 			</form>
 		</div>
-	{/if}
+	{/if} -->
 </div>
 
 <style>

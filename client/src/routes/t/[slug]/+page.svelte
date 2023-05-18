@@ -11,7 +11,7 @@
 <div id="outer">
 	<PostHeader {thread} />
 	<div class="indent">
-		<div>
+		<div id="content">
 			{#each paragraphs as paragraph}
 				<p>{paragraph}</p>
 			{/each}
@@ -27,13 +27,19 @@
 		margin: 0 2.25rem;
 	}
 
-	#outer {
+	#content {
+		margin: 1rem 0;
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
 	}
 
+	#outer {
+		display: flex;
+		flex-direction: column;
+	}
+
 	p {
-		margin-bottom: 0.5rem;
+		margin-bottom: 0;
 	}
 </style>

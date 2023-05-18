@@ -24,5 +24,6 @@
 
 	button {
 		width: auto;
+		padding: 0.25rem 0.5rem;
 	}
 </style>
